@@ -33,10 +33,13 @@ export function preparePuzzle(puzzle) {
 // Weighted pick: prefer puzzles near the player's current rating (matches
 // the "flash cards you can *almost* solve" difficulty sweet spot used by
 // adaptive spaced-repetition trainers), and prefer ones not recently shown.
-export function pickNextPuzzle(puzzles, playerRating, history, recentIds) {
+// colorFilter: 'w' | 'b' | 'both' -- restricts to puzzles where that color
+// is the one to find the move, for side-specific intuition practice.
+export function pickNextPuzzle(puzzles, playerRating, history, recentIds, colorFilter = 'both') {
   const now = Date.now()
-  const candidates = puzzles.filter((p) => !recentIds.includes(p.id))
-  const pool = candidates.length > 0 ? candidates : puzzles
+  const byColor = colorFilter === 'both' ? puzzles : puzzles.filter((p) => p.turn === colorFilter)
+  const candidates = byColor.filter((p) => !recentIds.includes(p.id))
+  const pool = candidates.length > 0 ? candidates : byColor
 
   // Any puzzle explicitly due for spaced-repetition review takes priority.
   const due = pool.filter((p) => {

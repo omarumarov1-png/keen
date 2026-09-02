@@ -47,6 +47,8 @@ with open("lichess_db_puzzle.csv") as f:
         if len(moves) != 2:
             # oneMove should always be setup + 1 solution move, but be safe
             continue
+        active = row["FEN"].split(" ")[1]  # whose turn to make the setup move
+        turn = "b" if active == "w" else "w"  # flips after the setup move
         buckets[band].append({
             "id": row["PuzzleId"],
             "fen": row["FEN"],
@@ -54,6 +56,7 @@ with open("lichess_db_puzzle.csv") as f:
             "solution": moves[1],
             "rating": rating,
             "themes": [t for t in themes if t != "oneMove"],
+            "turn": turn,
         })
 
 sampled = []

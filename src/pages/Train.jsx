@@ -30,7 +30,7 @@ export default function Train() {
 
   const startPuzzle = useCallback(
     (pool, st) => {
-      const puzzle = pickNextPuzzle(pool, st.rating, st.history, recentIds.current)
+      const puzzle = pickNextPuzzle(pool, st.rating, st.history, recentIds.current, st.colorFilter)
       recentIds.current = [puzzle.id, ...recentIds.current].slice(0, RECENT_WINDOW)
       const prepared = preparePuzzle(puzzle)
       setCurrent(prepared)

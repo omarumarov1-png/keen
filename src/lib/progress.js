@@ -10,6 +10,7 @@ function defaultState() {
     totalAttempts: 0,
     totalCorrect: 0,
     exposureSeconds: 8,
+    colorFilter: 'both', // 'w' | 'b' | 'both'
     history: {}, // puzzleId -> { seen, correct, lastSeenAt, dueAt, intervalMs }
   }
 }
@@ -77,6 +78,12 @@ export function recordAttempt(state, puzzle, correct) {
 
 export function setExposureSeconds(state, seconds) {
   const next = { ...state, exposureSeconds: seconds }
+  save(next)
+  return next
+}
+
+export function setColorFilter(state, colorFilter) {
+  const next = { ...state, colorFilter }
   save(next)
   return next
 }

@@ -1,14 +1,27 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { loadState, setExposureSeconds } from '../lib/progress.js'
+import { useNavigate } from 'react-router-dom'
+import { loadState, setExposureSeconds, setColorFilter } from '../lib/progress.js'
+
+const MODES = [
+  { id: 'w', label: 'Train as White', icon: '♔', desc: 'Only puzzles where White finds the move' },
+  { id: 'b', label: 'Train as Black', icon: '♚', desc: 'Only puzzles where Black finds the move' },
+  { id: 'both', label: 'Mixed', icon: '♟', desc: 'Both colors, shuffled' },
+]
 
 export default function Home() {
   const [state, setState] = useState(() => loadState())
+  const navigate = useNavigate()
 
   const accuracy = state.totalAttempts > 0 ? Math.round((state.totalCorrect / state.totalAttempts) * 100) : 0
 
   function changeExposure(seconds) {
     setState(setExposureSeconds(state, seconds))
+  }
+
+  function startMode(colorFilter) {
+    const next = setColorFilter(state, colorFilter)
+    setState(next)
+    navigate('/train')
   }
 
   return (
@@ -38,7 +51,15 @@ export default function Home() {
         </div>
       </div>
 
-      <Link to="/train" className="start-button">Start Training</Link>
+      <div className="mode-cards">
+        {MODES.map((m) => (
+          <button key={m.id} className="mode-card" onClick={() => startMode(m.id)}>
+            <span className="mode-icon">{m.icon}</span>
+            <span className="mode-label">{m.label}</span>
+            <span className="mode-desc">{m.desc}</span>
+          </button>
+        ))}
+      </div>
 
       <div className="settings">
         <label htmlFor="exposure">
