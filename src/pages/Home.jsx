@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { loadState, setExposureSeconds, setColorFilter } from '../lib/progress.js'
 
 const MODES = [
@@ -21,11 +21,12 @@ export default function Home() {
   function startMode(colorFilter) {
     const next = setColorFilter(state, colorFilter)
     setState(next)
-    navigate('/train')
+    navigate('/chess/train')
   }
 
   return (
     <div className="home-page">
+      <Link to="/" className="back-link">&larr; Intuition Trainer</Link>
       <h1>Chess Intuition Trainer</h1>
       <p className="tagline">
         Flash positions. Trust your first instinct. No calculation, no takebacks —

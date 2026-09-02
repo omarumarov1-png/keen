@@ -142,7 +142,7 @@ export default function Train() {
   return (
     <div className="train-page">
       <div className="train-hud">
-        <Link to="/" className="back-link">&larr; Menu</Link>
+        <Link to="/chess" className="back-link">&larr; Menu</Link>
         <div className="hud-stats">
           <span>Rating: <strong>{state.rating}</strong></span>
           <span>Streak: <strong>{state.streak}</strong></span>

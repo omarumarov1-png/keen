@@ -12,9 +12,9 @@ export default defineConfig({
       // PWAs (Wird/Muhkam), same pattern as arabic-listening.
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Chess Intuition Trainer',
-        short_name: 'Chess Intuition',
-        description: 'Flash-position chess intuition training -- real Lichess puzzles, adaptive difficulty, spaced repetition',
+        name: 'Intuition Trainer',
+        short_name: 'Intuition',
+        description: 'Sharpen instinct over calculation -- chess puzzle intuition training and classic black/white card-guessing exercises',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
