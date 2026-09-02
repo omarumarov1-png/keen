@@ -29,6 +29,14 @@
   padding: 1rem;
   border: 1px solid #e0e0e0;
   border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(6px);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .stat-value {
@@ -56,16 +64,24 @@
   padding: 0.9rem 1.1rem;
   border-radius: 12px;
   border: 1px solid #e0e0e0;
-  background: white;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(6px);
   cursor: pointer;
   text-align: left;
   font-family: inherit;
   color: inherit;
   text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .mode-card:hover {
   border-color: #999;
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+}
+
+.mode-card:active {
+  transform: translateY(0) scale(0.99);
 }
 
 .mode-icon {
@@ -212,23 +228,43 @@
   padding: 1rem 0;
 }
 
-.playing-card {
+/* 3D flip card */
+.flip-scene {
   width: 160px;
   height: 224px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  font-size: 1.2rem;
-  font-weight: 700;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-  border: 1px solid #ddd;
+  perspective: 1400px;
 }
 
-.playing-card.face-down {
+.flip-scene-large {
+  width: 190px;
+  height: 266px;
+}
+
+.flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+}
+
+.flip-face-back {
   background: #ffffff;
   padding: 8px;
+  box-sizing: border-box;
+}
+
+.flip-face-front {
+  transform: rotateY(180deg);
+  border: 1px solid #ddd;
   box-sizing: border-box;
 }
 
@@ -244,17 +280,40 @@
   background-image:
     repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0, rgba(255, 255, 255, 0.14) 2px, transparent 2px, transparent 12px),
     repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.14) 0, rgba(255, 255, 255, 0.14) 2px, transparent 2px, transparent 12px);
+}
+
+.card-back-mark {
   color: rgba(255, 255, 255, 0.85);
   font-size: 2.5rem;
   font-weight: 800;
 }
 
-.playing-card.revealed.black {
+.playing-card-face {
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.playing-card-face.black {
   background: #1a1a1a;
   color: white;
 }
 
-.playing-card.revealed.white {
+.playing-card-face.white {
+  background: #ffffff;
+  color: #111;
+}
+
+.playing-card-face.suit-red {
+  background: #ffffff;
+  color: #c0392b;
+}
+
+.playing-card-face.suit-black {
   background: #ffffff;
   color: #111;
 }
@@ -294,6 +353,16 @@
   font-size: 1rem;
   cursor: pointer;
   border: 1px solid #ccc;
+  transition: box-shadow 0.15s ease;
+}
+
+.guess-btn:not(:disabled):hover,
+.suit-btn:not(:disabled):hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.suit-btn {
+  transition: box-shadow 0.15s ease;
 }
 
 .guess-btn:disabled {
@@ -309,6 +378,49 @@
 .guess-white {
   background: #ffffff;
   color: #111;
+}
+
+.suit-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.suit-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.9rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background: white;
+}
+
+.suit-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.suit-symbol {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.suit-btn-red .suit-symbol {
+  color: #c0392b;
+}
+
+.suit-btn-black .suit-symbol {
+  color: #111;
+}
+
+.suit-name {
+  font-size: 0.8rem;
+  color: #777;
 }
 
 .edge-positive {

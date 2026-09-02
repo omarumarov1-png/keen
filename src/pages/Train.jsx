@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Chessboard } from 'react-chessboard'
 import { loadPuzzles, preparePuzzle, pickNextPuzzle } from '../lib/puzzles.js'
 import { loadState, recordAttempt } from '../lib/progress.js'
+import { hapticSuccess, hapticError } from '../lib/haptics.js'
 
 const RECENT_WINDOW = 40
 const FEEDBACK_DELAY_MS = 1300
@@ -79,6 +80,8 @@ export default function Train() {
     clearInterval(timerRef.current)
     const correct = attemptedUci === puzzle.solution
     setPhase(attemptedUci === null ? 'timeout' : correct ? 'correct' : 'incorrect')
+    if (correct) hapticSuccess()
+    else hapticError()
     const next = recordAttempt(st, puzzle, correct)
     setState(next)
     advanceRef.current = setTimeout(() => {

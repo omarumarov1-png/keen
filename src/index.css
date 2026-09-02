@@ -2,6 +2,7 @@
   --text: #333;
   --text-h: #111;
   --bg: #fff;
+  --bg-gradient: radial-gradient(1200px 800px at 50% -10%, #eef2ff 0%, #fafafa 45%, #ffffff 100%);
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
 
   font: 16px/1.5 var(--sans);
@@ -15,11 +16,15 @@
     --text: #d1d5db;
     --text-h: #f3f4f6;
     --bg: #16171d;
+    --bg-gradient: radial-gradient(1200px 800px at 50% -10%, #1e2440 0%, #16171d 45%, #101116 100%);
   }
 }
 
 body {
   margin: 0;
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  min-height: 100svh;
 }
 
 #root {

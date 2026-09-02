@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "canvas-confetti": "^1.9.4",
     "chess.js": "^1.4.0",
+    "framer-motion": "^13.1.1",
     "react": "^19.2.8",
     "react-chessboard": "^5.12.1",
     "react-dom": "^19.2.8",

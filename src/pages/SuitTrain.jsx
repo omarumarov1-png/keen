@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { buildDeck, shuffle } from '../lib/cards.js'
-import { loadCardState, recordGuess } from '../lib/cardProgress.js'
+import { buildDeck, shuffle, SUITS } from '../lib/cards.js'
+import { loadSuitState, recordSuitGuess } from '../lib/suitProgress.js'
 import { hapticSuccess, hapticError } from '../lib/haptics.js'
 import { burstSmall, burstCelebration } from '../lib/confetti.js'
 import PlayingCard from '../components/PlayingCard.jsx'
 
-export default function CardTrain() {
-  const [state, setState] = useState(() => loadCardState())
+export default function SuitTrain() {
+  const [state, setState] = useState(() => loadSuitState())
   const [current, setCurrent] = useState(null)
   const [phase, setPhase] = useState('guessing') // guessing | revealed
   const [lastGuess, setLastGuess] = useState(null)
@@ -19,7 +19,8 @@ export default function CardTrain() {
 
   const drawNext = useCallback(() => {
     if (indexRef.current >= deckRef.current.length) {
-      deckRef.current = shuffle(buildDeck({ includeJokers: true }))
+      // no jokers here -- a joker has no suit among the 4 options
+      deckRef.current = shuffle(buildDeck({ includeJokers: false }))
       indexRef.current = 0
     }
     const card = deckRef.current[indexRef.current]
@@ -30,18 +31,18 @@ export default function CardTrain() {
   }, [])
 
   useEffect(() => {
-    deckRef.current = shuffle(buildDeck({ includeJokers: true }))
+    deckRef.current = shuffle(buildDeck({ includeJokers: false }))
     indexRef.current = 0
     drawNext()
     return () => clearTimeout(advanceRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function guess(color) {
+  function guess(suitId) {
     if (phase !== 'guessing' || !current) return
-    setLastGuess(color)
+    setLastGuess(suitId)
     setPhase('revealed')
-    const correct = color === current.color
+    const correct = suitId === current.suit
     const newStreak = correct ? state.streak + 1 : 0
     if (correct) {
       hapticSuccess()
@@ -53,14 +54,14 @@ export default function CardTrain() {
     } else {
       hapticError()
     }
-    setState(recordGuess(state, correct))
-    advanceRef.current = setTimeout(drawNext, 1400)
+    setState(recordSuitGuess(state, correct))
+    advanceRef.current = setTimeout(drawNext, 1500)
   }
 
   if (!current) return <p>Shuffling…</p>
 
   const accuracy = state.totalGuesses > 0 ? Math.round((state.totalCorrect / state.totalGuesses) * 100) : 0
-  const edge = state.totalGuesses >= 10 ? accuracy - 50 : null
+  const edge = state.totalGuesses >= 8 ? accuracy - 25 : null
 
   return (
     <div className="cardtrain-page">
@@ -81,38 +82,34 @@ export default function CardTrain() {
 
       <AnimatePresence mode="wait">
         <motion.p
-          key={phase === 'guessing' ? 'guessing' : lastGuess === current.color ? 'correct' : 'incorrect'}
+          key={phase === 'guessing' ? 'guessing' : lastGuess === current.suit ? 'correct' : 'incorrect'}
           className="card-prompt"
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 6 }}
           transition={{ duration: 0.18 }}
         >
-          {phase === 'guessing' ? 'Is the next card black or white?' : lastGuess === current.color ? '✓ Correct!' : '✗ Not quite'}
+          {phase === 'guessing' ? 'Which suit is next?' : lastGuess === current.suit ? '✓ Correct!' : `✗ It was ${current.suit}`}
         </motion.p>
       </AnimatePresence>
 
       <div className="card-stage">
-        <PlayingCard revealed={phase === 'revealed'} card={current} />
+        <PlayingCard revealed={phase === 'revealed'} card={current} colorMode="suit" />
       </div>
 
-      <div className="guess-buttons">
-        <motion.button
-          className="guess-btn guess-black"
-          onClick={() => guess('black')}
-          disabled={phase !== 'guessing'}
-          whileTap={{ scale: 0.94 }}
-        >
-          ⚫ Black
-        </motion.button>
-        <motion.button
-          className="guess-btn guess-white"
-          onClick={() => guess('white')}
-          disabled={phase !== 'guessing'}
-          whileTap={{ scale: 0.94 }}
-        >
-          ⚪ White
-        </motion.button>
+      <div className="suit-buttons">
+        {SUITS.map((s) => (
+          <motion.button
+            key={s.id}
+            className={`suit-btn suit-btn-${s.trueColor}`}
+            onClick={() => guess(s.id)}
+            disabled={phase !== 'guessing'}
+            whileTap={{ scale: 0.92 }}
+          >
+            <span className="suit-symbol">{s.symbol}</span>
+            <span className="suit-name">{s.label}</span>
+          </motion.button>
+        ))}
       </div>
     </div>
   )

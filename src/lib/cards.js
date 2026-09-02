@@ -1,8 +1,8 @@
-const SUITS = [
-  { id: 'spades', symbol: '♠', color: 'black' },
-  { id: 'clubs', symbol: '♣', color: 'black' },
-  { id: 'hearts', symbol: '♥', color: 'white' },
-  { id: 'diamonds', symbol: '♦', color: 'white' },
+export const SUITS = [
+  { id: 'spades', symbol: '♠', color: 'black', trueColor: 'black', label: 'Spades' },
+  { id: 'clubs', symbol: '♣', color: 'black', trueColor: 'black', label: 'Clubs' },
+  { id: 'hearts', symbol: '♥', color: 'white', trueColor: 'red', label: 'Hearts' },
+  { id: 'diamonds', symbol: '♦', color: 'white', trueColor: 'red', label: 'Diamonds' },
 ]
 
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
@@ -16,13 +16,14 @@ export function buildDeck({ includeJokers = true } = {}) {
         rank,
         suit: suit.id,
         symbol: suit.symbol,
-        color: suit.color, // 'black' | 'white' -- the guessing target
+        color: suit.color, // 'black' | 'white' -- the black/white-mode guessing target
+        trueColor: suit.trueColor, // 'black' | 'red' -- real suit color, for the suit-guessing mode
       })
     }
   }
   if (includeJokers) {
-    deck.push({ id: 'joker-black', rank: 'Joker', suit: 'joker', symbol: '★', color: 'black' })
-    deck.push({ id: 'joker-white', rank: 'Joker', suit: 'joker', symbol: '★', color: 'white' })
+    deck.push({ id: 'joker-black', rank: 'Joker', suit: 'joker', symbol: '★', color: 'black', trueColor: 'black' })
+    deck.push({ id: 'joker-white', rank: 'Joker', suit: 'joker', symbol: '★', color: 'white', trueColor: 'red' })
   }
   return deck
 }
