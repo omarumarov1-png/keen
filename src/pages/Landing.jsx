@@ -7,6 +7,8 @@ const CATEGORIES = [
   { to: '/cards', icon: '🂠', labelKey: 'landing.cards.label', descKey: 'landing.cards.desc' },
   { to: '/numbers', icon: '#', labelKey: 'landing.numbers.label', descKey: 'landing.numbers.desc' },
   { to: '/business', icon: '💡', labelKey: 'landing.business.label', descKey: 'landing.business.desc' },
+  { to: '/time', icon: '⏱', labelKey: 'landing.time.label', descKey: 'landing.time.desc' },
+  { to: '/confidence', icon: '🎯', labelKey: 'landing.confidence.label', descKey: 'landing.confidence.desc' },
 ]
 
 export default function Landing() {

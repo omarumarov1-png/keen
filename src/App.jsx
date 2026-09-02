@@ -10,6 +10,10 @@ import NumberHome from './pages/NumberHome.jsx'
 import NumberTrain from './pages/NumberTrain.jsx'
 import BusinessHome from './pages/BusinessHome.jsx'
 import BusinessTrain from './pages/BusinessTrain.jsx'
+import TimeHome from './pages/TimeHome.jsx'
+import TimeTrain from './pages/TimeTrain.jsx'
+import ConfidenceHome from './pages/ConfidenceHome.jsx'
+import ConfidenceTrain from './pages/ConfidenceTrain.jsx'
 import { useLang } from './lib/i18n.jsx'
 import './App.css'
 
@@ -64,6 +68,10 @@ function App() {
           <Route path="/numbers/train" element={<PageWrap><NumberTrain /></PageWrap>} />
           <Route path="/business" element={<PageWrap><BusinessHome /></PageWrap>} />
           <Route path="/business/train" element={<PageWrap><BusinessTrain /></PageWrap>} />
+          <Route path="/time" element={<PageWrap><TimeHome /></PageWrap>} />
+          <Route path="/time/train" element={<PageWrap><TimeTrain /></PageWrap>} />
+          <Route path="/confidence" element={<PageWrap><ConfidenceHome /></PageWrap>} />
+          <Route path="/confidence/train" element={<PageWrap><ConfidenceTrain /></PageWrap>} />
         </Routes>
       </AnimatePresence>
     </div>
