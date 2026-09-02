@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { loadCardState } from '../lib/cardProgress.js'
 import { loadSuitState } from '../lib/suitProgress.js'
+import { useLang } from '../lib/i18n.jsx'
 
 export default function CardHome() {
+  const { t } = useLang()
   const bw = loadCardState()
   const suits = loadSuitState()
   const bwAccuracy = bw.totalGuesses > 0 ? Math.round((bw.totalCorrect / bw.totalGuesses) * 100) : 0
@@ -10,25 +12,30 @@ export default function CardHome() {
 
   return (
     <div className="home-page">
-      <Link to="/" className="back-link">&larr; Keen</Link>
-      <h1>Card Intuition</h1>
-      <p className="tagline">
-        A card is drawn face-down. Before it flips, trust your gut.
-      </p>
+      <Link to="/" className="back-link">{t('back.keen')}</Link>
+      <h1>{t('cards.title')}</h1>
+      <p className="tagline">{t('cards.tagline')}</p>
 
       <div className="mode-cards">
         <Link to="/cards/train" className="mode-card">
           <span className="mode-icon">⚫⚪</span>
-          <span className="mode-label">Black or White</span>
+          <span className="mode-label">{t('cards.bw.label')}</span>
           <span className="mode-desc">
-            Binary call. {bw.totalGuesses > 0 ? `${bwAccuracy}% accuracy, best streak ${bw.bestStreak}` : 'Not played yet'}
+            {bw.totalGuesses > 0
+              ? t('cards.bw.descPlayed', { accuracy: bwAccuracy, streak: bw.bestStreak })
+              : t('cards.bw.descUnplayed')}
           </span>
         </Link>
         <Link to="/cards/suits" className="mode-card">
-          <span className="mode-icon">♠♥♣♦</span>
-          <span className="mode-label">Guess the Suit</span>
+          <span className="mode-icon">
+            <span className="suit-black">♠♣</span>
+            <span className="suit-red">♥♦</span>
+          </span>
+          <span className="mode-label">{t('cards.suits.label')}</span>
           <span className="mode-desc">
-            4-way call — spades, hearts, clubs, diamonds. {suits.totalGuesses > 0 ? `${suitAccuracy}% accuracy, best streak ${suits.bestStreak}` : 'Not played yet'}
+            {suits.totalGuesses > 0
+              ? t('cards.suits.descPlayed', { accuracy: suitAccuracy, streak: suits.bestStreak })
+              : t('cards.suits.descUnplayed')}
           </span>
         </Link>
       </div>

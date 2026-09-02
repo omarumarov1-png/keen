@@ -6,6 +6,7 @@ import Train from './pages/Train.jsx'
 import CardHome from './pages/CardHome.jsx'
 import CardTrain from './pages/CardTrain.jsx'
 import SuitTrain from './pages/SuitTrain.jsx'
+import { useLang } from './lib/i18n.jsx'
 import './App.css'
 
 const pageVariants = {
@@ -28,10 +29,25 @@ function PageWrap({ children }) {
   )
 }
 
+function LangSwitcher() {
+  const { lang, toggleLang } = useLang()
+  return (
+    <motion.button
+      className="lang-switcher"
+      onClick={toggleLang}
+      whileTap={{ scale: 0.92 }}
+      aria-label="Toggle language"
+    >
+      {lang === 'en' ? 'RU' : 'EN'}
+    </motion.button>
+  )
+}
+
 function App() {
   const location = useLocation()
   return (
     <div className="app-shell">
+      <LangSwitcher />
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<PageWrap><Landing /></PageWrap>} />

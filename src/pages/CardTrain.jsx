@@ -5,13 +5,18 @@ import { buildDeck, shuffle } from '../lib/cards.js'
 import { loadCardState, recordGuess } from '../lib/cardProgress.js'
 import { hapticSuccess, hapticError } from '../lib/haptics.js'
 import { burstSmall, burstCelebration } from '../lib/confetti.js'
+import { useLang } from '../lib/i18n.jsx'
+import { maybePickQuote } from '../lib/quotes.js'
 import PlayingCard from '../components/PlayingCard.jsx'
+import QuoteBanner from '../components/QuoteBanner.jsx'
 
 export default function CardTrain() {
+  const { t } = useLang()
   const [state, setState] = useState(() => loadCardState())
   const [current, setCurrent] = useState(null)
   const [phase, setPhase] = useState('guessing') // guessing | revealed
   const [lastGuess, setLastGuess] = useState(null)
+  const [quote, setQuote] = useState(null)
 
   const deckRef = useRef([])
   const indexRef = useRef(0)
@@ -27,6 +32,7 @@ export default function CardTrain() {
     setCurrent(card)
     setPhase('guessing')
     setLastGuess(null)
+    setQuote(null)
   }, [])
 
   useEffect(() => {
@@ -41,6 +47,7 @@ export default function CardTrain() {
     if (phase !== 'guessing' || !current) return
     setLastGuess(color)
     setPhase('revealed')
+    setQuote(maybePickQuote())
     const correct = color === current.color
     const newStreak = correct ? state.streak + 1 : 0
     if (correct) {
@@ -57,7 +64,7 @@ export default function CardTrain() {
     advanceRef.current = setTimeout(drawNext, 1400)
   }
 
-  if (!current) return <p>Shuffling…</p>
+  if (!current) return <p>{t('cardtrain.shuffling')}</p>
 
   const accuracy = state.totalGuesses > 0 ? Math.round((state.totalCorrect / state.totalGuesses) * 100) : 0
   const edge = state.totalGuesses >= 10 ? accuracy - 50 : null
@@ -65,15 +72,15 @@ export default function CardTrain() {
   return (
     <div className="cardtrain-page">
       <div className="train-hud">
-        <Link to="/cards" className="back-link">&larr; Menu</Link>
+        <Link to="/cards" className="back-link">{t('back.menu')}</Link>
         <div className="hud-stats">
           <span>
-            Streak: <motion.strong key={state.streak} initial={{ scale: 1.5 }} animate={{ scale: 1 }}>{state.streak}</motion.strong>
+            {t('train.streak')} <motion.strong key={state.streak} initial={{ scale: 1.5 }} animate={{ scale: 1 }}>{state.streak}</motion.strong>
           </span>
-          <span>Accuracy: <strong>{accuracy}%</strong></span>
+          <span>{t('train.accuracy')} <strong>{accuracy}%</strong></span>
           {edge !== null && (
             <span className={edge > 0 ? 'edge-positive' : edge < 0 ? 'edge-negative' : ''}>
-              {edge > 0 ? '+' : ''}{edge} vs chance
+              {edge > 0 ? '+' : ''}{edge} {t('cardtrain.vsChance')}
             </span>
           )}
         </div>
@@ -88,7 +95,7 @@ export default function CardTrain() {
           exit={{ opacity: 0, y: 6 }}
           transition={{ duration: 0.18 }}
         >
-          {phase === 'guessing' ? 'Is the next card black or white?' : lastGuess === current.color ? '✓ Correct!' : '✗ Not quite'}
+          {phase === 'guessing' ? t('cardtrain.prompt') : lastGuess === current.color ? t('cardtrain.correct') : t('cardtrain.incorrect')}
         </motion.p>
       </AnimatePresence>
 
@@ -103,7 +110,7 @@ export default function CardTrain() {
           disabled={phase !== 'guessing'}
           whileTap={{ scale: 0.94 }}
         >
-          ⚫ Black
+          {t('cardtrain.guessBlack')}
         </motion.button>
         <motion.button
           className="guess-btn guess-white"
@@ -111,9 +118,11 @@ export default function CardTrain() {
           disabled={phase !== 'guessing'}
           whileTap={{ scale: 0.94 }}
         >
-          ⚪ White
+          {t('cardtrain.guessWhite')}
         </motion.button>
       </div>
+
+      <QuoteBanner quote={quote} />
     </div>
   )
 }

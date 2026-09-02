@@ -4,11 +4,15 @@ import { Chessboard } from 'react-chessboard'
 import { loadPuzzles, preparePuzzle, pickNextPuzzle } from '../lib/puzzles.js'
 import { loadState, recordAttempt } from '../lib/progress.js'
 import { hapticSuccess, hapticError } from '../lib/haptics.js'
+import { useLang } from '../lib/i18n.jsx'
+import { maybePickQuote } from '../lib/quotes.js'
+import QuoteBanner from '../components/QuoteBanner.jsx'
 
 const RECENT_WINDOW = 40
 const FEEDBACK_DELAY_MS = 1300
 
 export default function Train() {
+  const { t } = useLang()
   const [puzzles, setPuzzles] = useState(null)
   const [state, setState] = useState(() => loadState())
   const [current, setCurrent] = useState(null)
@@ -16,6 +20,7 @@ export default function Train() {
   const [legalTargets, setLegalTargets] = useState([])
   const [phase, setPhase] = useState('loading') // loading | showing | correct | incorrect | timeout
   const [timeLeft, setTimeLeft] = useState(0)
+  const [quote, setQuote] = useState(null)
 
   const recentIds = useRef([])
   const timerRef = useRef(null)
@@ -39,6 +44,7 @@ export default function Train() {
       setLegalTargets([])
       setPhase('showing')
       setTimeLeft(st.exposureSeconds)
+      setQuote(null)
 
       clearInterval(timerRef.current)
       const startedAt = Date.now()
@@ -80,6 +86,7 @@ export default function Train() {
     clearInterval(timerRef.current)
     const correct = attemptedUci === puzzle.solution
     setPhase(attemptedUci === null ? 'timeout' : correct ? 'correct' : 'incorrect')
+    setQuote(maybePickQuote())
     if (correct) hapticSuccess()
     else hapticError()
     const next = recordAttempt(st, puzzle, correct)
@@ -138,18 +145,18 @@ export default function Train() {
     return true
   }
 
-  if (!current) return <p>Loading puzzles…</p>
+  if (!current) return <p>{t('train.loading')}</p>
 
   const accuracy = state.totalAttempts > 0 ? Math.round((state.totalCorrect / state.totalAttempts) * 100) : 0
 
   return (
     <div className="train-page">
       <div className="train-hud">
-        <Link to="/chess" className="back-link">&larr; Menu</Link>
+        <Link to="/chess" className="back-link">{t('back.menu')}</Link>
         <div className="hud-stats">
-          <span>Rating: <strong>{state.rating}</strong></span>
-          <span>Streak: <strong>{state.streak}</strong></span>
-          <span>Accuracy: <strong>{accuracy}%</strong></span>
+          <span>{t('train.rating')} <strong>{state.rating}</strong></span>
+          <span>{t('train.streak')} <strong>{state.streak}</strong></span>
+          <span>{t('train.accuracy')} <strong>{accuracy}%</strong></span>
         </div>
       </div>
 
@@ -178,11 +185,17 @@ export default function Train() {
       </div>
 
       <div className="feedback-row">
-        {phase === 'correct' && <p className="feedback correct">✓ Correct!</p>}
-        {phase === 'incorrect' && <p className="feedback incorrect">✗ Not quite — correct move highlighted</p>}
-        {phase === 'timeout' && <p className="feedback incorrect">⏱ Time's up — correct move highlighted</p>}
-        {phase === 'showing' && <p className="feedback">Find the best move for {current.turn === 'w' ? 'White' : 'Black'}</p>}
+        {phase === 'correct' && <p className="feedback correct">{t('train.correct')}</p>}
+        {phase === 'incorrect' && <p className="feedback incorrect">{t('train.incorrect')}</p>}
+        {phase === 'timeout' && <p className="feedback incorrect">{t('train.timeout')}</p>}
+        {phase === 'showing' && (
+          <p className="feedback">
+            {t('train.findMoveFor')} {current.turn === 'w' ? t('train.white') : t('train.black')}
+          </p>
+        )}
       </div>
+
+      <QuoteBanner quote={quote} />
     </div>
   )
 }

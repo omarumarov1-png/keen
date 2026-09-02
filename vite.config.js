@@ -23,7 +23,8 @@ export default defineConfig({
         background_color: '#ffffff',
         theme_color: '#111111',
         icons: [
-          { src: 'icons.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          { src: 'logo.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          { src: 'logo.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
         ],
       },
       workbox: {
