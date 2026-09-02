@@ -6,6 +6,8 @@ import Train from './pages/Train.jsx'
 import CardHome from './pages/CardHome.jsx'
 import CardTrain from './pages/CardTrain.jsx'
 import SuitTrain from './pages/SuitTrain.jsx'
+import NumberHome from './pages/NumberHome.jsx'
+import NumberTrain from './pages/NumberTrain.jsx'
 import { useLang } from './lib/i18n.jsx'
 import './App.css'
 
@@ -56,6 +58,8 @@ function App() {
           <Route path="/cards" element={<PageWrap><CardHome /></PageWrap>} />
           <Route path="/cards/train" element={<PageWrap><CardTrain /></PageWrap>} />
           <Route path="/cards/suits" element={<PageWrap><SuitTrain /></PageWrap>} />
+          <Route path="/numbers" element={<PageWrap><NumberHome /></PageWrap>} />
+          <Route path="/numbers/train" element={<PageWrap><NumberTrain /></PageWrap>} />
         </Routes>
       </AnimatePresence>
     </div>

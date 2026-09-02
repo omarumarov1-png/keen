@@ -5,6 +5,7 @@ import { useLang } from '../lib/i18n.jsx'
 const CATEGORIES = [
   { to: '/chess', icon: '♟', labelKey: 'landing.chess.label', descKey: 'landing.chess.desc' },
   { to: '/cards', icon: '🂠', labelKey: 'landing.cards.label', descKey: 'landing.cards.desc' },
+  { to: '/numbers', icon: '#', labelKey: 'landing.numbers.label', descKey: 'landing.numbers.desc' },
 ]
 
 export default function Landing() {

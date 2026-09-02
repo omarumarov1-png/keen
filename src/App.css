@@ -478,6 +478,52 @@
   color: #777;
 }
 
+.number-mode-icon {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  color: #2451b8;
+}
+
+.number-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.number-btn {
+  padding: 1rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background: white;
+  transition: box-shadow 0.15s ease;
+}
+
+.number-btn:not(:disabled):hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.number-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.number-reveal-face {
+  background: #ffffff;
+  color: #122a66;
+}
+
+.number-reveal-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
 .edge-positive {
   color: #2a7d2a;
 }

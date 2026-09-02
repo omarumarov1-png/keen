@@ -4,11 +4,13 @@ const KEY = 'keen-lang-v1'
 
 const dict = {
   en: {
-    'landing.tagline': 'Two ways to sharpen instinct over calculation.',
+    'landing.tagline': 'Three ways to sharpen instinct over calculation.',
     'landing.chess.label': 'Chess Intuition',
     'landing.chess.desc': 'Flash positions from real games — find the best move on instinct, no calculation.',
     'landing.cards.label': 'Card Intuition',
     'landing.cards.desc': 'Guess black or white before the card flips — classic intuition/ESP-style training.',
+    'landing.numbers.label': 'Number Intuition',
+    'landing.numbers.desc': 'A number is picked at random — guess it from 4 options before it\'s revealed.',
 
     'back.keen': '← Keen',
     'back.menu': '← Menu',
@@ -62,13 +64,29 @@ const dict = {
     'suit.hearts': 'Hearts',
     'suit.clubs': 'Clubs',
     'suit.diamonds': 'Diamonds',
+
+    'numbers.title': 'Number Intuition',
+    'numbers.tagline': 'A random number is picked. Before it\'s revealed, guess it from 4 options — pure gut call, no math.',
+    'numbers.mode.d1.label': '1-digit',
+    'numbers.mode.d1.desc': '0–9',
+    'numbers.mode.d2.label': '2-digit',
+    'numbers.mode.d2.desc': '10–99',
+    'numbers.mode.d3.label': '3-digit',
+    'numbers.mode.d3.desc': '100–999',
+    'numbers.mode.d4.label': '4-digit',
+    'numbers.mode.d4.desc': '1000–9999',
+    'numtrain.prompt': 'Which number is it?',
+    'numtrain.correct': '✓ Correct!',
+    'numtrain.incorrectPrefix': '✗ It was',
   },
   ru: {
-    'landing.tagline': 'Два способа отточить интуицию вместо расчёта.',
+    'landing.tagline': 'Три способа отточить интуицию вместо расчёта.',
     'landing.chess.label': 'Шахматная интуиция',
     'landing.chess.desc': 'Позиции из реальных партий на короткий показ — найдите лучший ход по наитию, без расчёта.',
     'landing.cards.label': 'Карточная интуиция',
     'landing.cards.desc': 'Угадайте чёрная или белая карта, прежде чем она перевернётся — классическая тренировка интуиции в стиле ESP.',
+    'landing.numbers.label': 'Числовая интуиция',
+    'landing.numbers.desc': 'Число выбирается случайно — угадайте его из 4 вариантов, прежде чем оно откроется.',
 
     'back.keen': '← Keen',
     'back.menu': '← Меню',
@@ -122,6 +140,20 @@ const dict = {
     'suit.hearts': 'Черви',
     'suit.clubs': 'Трефы',
     'suit.diamonds': 'Бубны',
+
+    'numbers.title': 'Числовая интуиция',
+    'numbers.tagline': 'Число выбирается случайно. Прежде чем оно откроется, угадайте его из 4 вариантов — чистое чутьё, без расчёта.',
+    'numbers.mode.d1.label': '1 цифра',
+    'numbers.mode.d1.desc': '0–9',
+    'numbers.mode.d2.label': '2 цифры',
+    'numbers.mode.d2.desc': '10–99',
+    'numbers.mode.d3.label': '3 цифры',
+    'numbers.mode.d3.desc': '100–999',
+    'numbers.mode.d4.label': '4 цифры',
+    'numbers.mode.d4.desc': '1000–9999',
+    'numtrain.prompt': 'Какое это число?',
+    'numtrain.correct': '✓ Верно!',
+    'numtrain.incorrectPrefix': '✗ Это было',
   },
 }
 
