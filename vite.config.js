@@ -4,8 +4,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // Served from https://<user>.github.io/chess-intuition/, not domain root.
-  base: '/chess-intuition/',
+  // Served from https://<user>.github.io/keen/, not domain root.
+  base: '/keen/',
   plugins: [
     react(),
     VitePWA({
@@ -17,8 +17,8 @@ export default defineConfig({
         name: 'Keen',
         short_name: 'Keen',
         description: 'Sharpen instinct over calculation -- chess puzzle intuition training and classic black/white card-guessing exercises',
-        start_url: '/chess-intuition/',
-        scope: '/chess-intuition/',
+        start_url: '/keen/',
+        scope: '/keen/',
         display: 'standalone',
         background_color: '#ffffff',
         theme_color: '#111111',
