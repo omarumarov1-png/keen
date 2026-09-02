@@ -1,0 +1,133 @@
+.app-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+}
+
+/* Home */
+.home-page h1 {
+  font-size: 1.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.tagline {
+  color: #777;
+  margin-bottom: 1.5rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.start-button {
+  display: block;
+  text-align: center;
+  padding: 0.9rem;
+  border-radius: 10px;
+  background: #111;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-bottom: 1.5rem;
+}
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.settings input[type='range'] {
+  width: 100%;
+}
+
+/* Train */
+.train-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.train-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.back-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.hud-stats {
+  display: flex;
+  gap: 0.9rem;
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.hud-stats strong {
+  color: var(--text-h);
+}
+
+.timer-bar-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #eee;
+  overflow: hidden;
+}
+
+.timer-bar-fill {
+  height: 100%;
+  background: #2a7d2a;
+  transition: width 0.1s linear;
+}
+
+.timer-bar-track.paused .timer-bar-fill {
+  background: #999;
+}
+
+.board-wrap {
+  width: 100%;
+}
+
+.feedback-row {
+  min-height: 1.6rem;
+  text-align: center;
+}
+
+.feedback {
+  font-weight: 600;
+  color: #777;
+}
+
+.feedback.correct {
+  color: #2a7d2a;
+}
+
+.feedback.incorrect {
+  color: #c0392b;
+}

@@ -1,0 +1,185 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Chessboard } from 'react-chessboard'
+import { loadPuzzles, preparePuzzle, pickNextPuzzle } from '../lib/puzzles.js'
+import { loadState, recordAttempt } from '../lib/progress.js'
+
+const RECENT_WINDOW = 40
+const FEEDBACK_DELAY_MS = 1300
+
+export default function Train() {
+  const [puzzles, setPuzzles] = useState(null)
+  const [state, setState] = useState(() => loadState())
+  const [current, setCurrent] = useState(null)
+  const [selected, setSelected] = useState(null)
+  const [legalTargets, setLegalTargets] = useState([])
+  const [phase, setPhase] = useState('loading') // loading | showing | correct | incorrect | timeout
+  const [timeLeft, setTimeLeft] = useState(0)
+
+  const recentIds = useRef([])
+  const timerRef = useRef(null)
+  const advanceRef = useRef(null)
+
+  useEffect(() => {
+    loadPuzzles().then(setPuzzles)
+    return () => {
+      clearInterval(timerRef.current)
+      clearTimeout(advanceRef.current)
+    }
+  }, [])
+
+  const startPuzzle = useCallback(
+    (pool, st) => {
+      const puzzle = pickNextPuzzle(pool, st.rating, st.history, recentIds.current)
+      recentIds.current = [puzzle.id, ...recentIds.current].slice(0, RECENT_WINDOW)
+      const prepared = preparePuzzle(puzzle)
+      setCurrent(prepared)
+      setSelected(null)
+      setLegalTargets([])
+      setPhase('showing')
+      setTimeLeft(st.exposureSeconds)
+
+      clearInterval(timerRef.current)
+      const startedAt = Date.now()
+      timerRef.current = setInterval(() => {
+        const elapsed = (Date.now() - startedAt) / 1000
+        const left = Math.max(0, st.exposureSeconds - elapsed)
+        setTimeLeft(left)
+        if (left <= 0) {
+          clearInterval(timerRef.current)
+          resolveAttempt(prepared, null, st)
+        }
+      }, 100)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  )
+
+  useEffect(() => {
+    if (puzzles) startPuzzle(puzzles, state)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puzzles])
+
+  useEffect(() => {
+    // Dev-only test hook -- statically stripped from production builds by
+    // Vite (import.meta.env.DEV is replaced with `false` and dead-code
+    // eliminated), so this is never present for real users. Never read
+    // solution data from a non-DEV build.
+    if (import.meta.env.DEV && current) {
+      window.__chessIntuitionDebug = {
+        fen: current.positionFen,
+        solution: current.solution,
+        turn: current.turn,
+        phase,
+      }
+    }
+  }, [current, phase])
+
+  function resolveAttempt(puzzle, attemptedUci, st) {
+    clearInterval(timerRef.current)
+    const correct = attemptedUci === puzzle.solution
+    setPhase(attemptedUci === null ? 'timeout' : correct ? 'correct' : 'incorrect')
+    const next = recordAttempt(st, puzzle, correct)
+    setState(next)
+    advanceRef.current = setTimeout(() => {
+      startPuzzle(puzzles, next)
+    }, FEEDBACK_DELAY_MS)
+  }
+
+  function squareStyleFor(square) {
+    const styles = {}
+    if (selected === square) {
+      styles.backgroundColor = 'rgba(255, 215, 0, 0.5)'
+    }
+    if (legalTargets.includes(square)) {
+      styles.backgroundColor = 'rgba(0, 150, 0, 0.25)'
+    }
+    if (phase !== 'showing' && current) {
+      const [from, to] = [current.solution.slice(0, 2), current.solution.slice(2, 4)]
+      if (square === from || square === to) {
+        styles.backgroundColor = phase === 'correct' ? 'rgba(0, 180, 0, 0.45)' : 'rgba(200, 0, 0, 0.35)'
+      }
+    }
+    return styles
+  }
+
+  function handleSquareClick({ piece, square }) {
+    if (phase !== 'showing' || !current) return
+
+    if (selected && legalTargets.includes(square)) {
+      const uci = selected + square
+      setSelected(null)
+      setLegalTargets([])
+      resolveAttempt(current, uci, state)
+      return
+    }
+
+    if (piece && piece.pieceType[0] === current.turn) {
+      const moves = current.chess.moves({ square, verbose: true })
+      setSelected(square)
+      setLegalTargets(moves.map((m) => m.to))
+    } else {
+      setSelected(null)
+      setLegalTargets([])
+    }
+  }
+
+  function handlePieceDrop({ sourceSquare, targetSquare }) {
+    if (phase !== 'showing' || !current || !targetSquare) return false
+    const moves = current.chess.moves({ square: sourceSquare, verbose: true })
+    const legal = moves.some((m) => m.to === targetSquare)
+    if (!legal) return false
+    setSelected(null)
+    setLegalTargets([])
+    resolveAttempt(current, sourceSquare + targetSquare, state)
+    return true
+  }
+
+  if (!current) return <p>Loading puzzles…</p>
+
+  const accuracy = state.totalAttempts > 0 ? Math.round((state.totalCorrect / state.totalAttempts) * 100) : 0
+
+  return (
+    <div className="train-page">
+      <div className="train-hud">
+        <Link to="/" className="back-link">&larr; Menu</Link>
+        <div className="hud-stats">
+          <span>Rating: <strong>{state.rating}</strong></span>
+          <span>Streak: <strong>{state.streak}</strong></span>
+          <span>Accuracy: <strong>{accuracy}%</strong></span>
+        </div>
+      </div>
+
+      <div className={`timer-bar-track ${phase !== 'showing' ? 'paused' : ''}`}>
+        <div
+          className="timer-bar-fill"
+          style={{ width: `${(timeLeft / state.exposureSeconds) * 100}%` }}
+        />
+      </div>
+
+      <div className="board-wrap">
+        <Chessboard
+          options={{
+            position: current.positionFen,
+            boardOrientation: current.turn === 'w' ? 'white' : 'black',
+            onSquareClick: handleSquareClick,
+            onPieceDrop: handlePieceDrop,
+            squareStyles: Object.fromEntries(
+              [selected, ...legalTargets, current.solution.slice(0, 2), current.solution.slice(2, 4)]
+                .filter(Boolean)
+                .map((sq) => [sq, squareStyleFor(sq)])
+            ),
+            showAnimations: false,
+          }}
+        />
+      </div>
+
+      <div className="feedback-row">
+        {phase === 'correct' && <p className="feedback correct">✓ Correct!</p>}
+        {phase === 'incorrect' && <p className="feedback incorrect">✗ Not quite — correct move highlighted</p>}
+        {phase === 'timeout' && <p className="feedback incorrect">⏱ Time's up — correct move highlighted</p>}
+        {phase === 'showing' && <p className="feedback">Find the best move for {current.turn === 'w' ? 'White' : 'Black'}</p>}
+      </div>
+    </div>
+  )
+}
