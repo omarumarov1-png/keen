@@ -227,11 +227,24 @@
 }
 
 .playing-card.face-down {
-  background: repeating-linear-gradient(45deg, #333, #333 6px, #222 6px, #222 12px);
+  background: #ffffff;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
 .card-back-pattern {
-  color: rgba(255, 255, 255, 0.6);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  background-color: #1a3e8c;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0, rgba(255, 255, 255, 0.14) 2px, transparent 2px, transparent 12px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.14) 0, rgba(255, 255, 255, 0.14) 2px, transparent 2px, transparent 12px);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 2.5rem;
   font-weight: 800;
 }
