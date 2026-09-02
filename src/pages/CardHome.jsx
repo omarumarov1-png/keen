@@ -10,7 +10,7 @@ export default function CardHome() {
 
   return (
     <div className="home-page">
-      <Link to="/" className="back-link">&larr; Intuition Trainer</Link>
+      <Link to="/" className="back-link">&larr; Keen</Link>
       <h1>Card Intuition</h1>
       <p className="tagline">
         A card is drawn face-down. Before it flips, trust your gut.

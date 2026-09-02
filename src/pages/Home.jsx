@@ -26,8 +26,8 @@ export default function Home() {
 
   return (
     <div className="home-page">
-      <Link to="/" className="back-link">&larr; Intuition Trainer</Link>
-      <h1>Chess Intuition Trainer</h1>
+      <Link to="/" className="back-link">&larr; Keen</Link>
+      <h1>Chess Intuition</h1>
       <p className="tagline">
         Flash positions. Trust your first instinct. No calculation, no takebacks —
         just pattern recognition, sharpened.

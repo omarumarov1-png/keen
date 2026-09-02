@@ -14,8 +14,8 @@ export default defineConfig({
       // PWAs (Wird/Muhkam), same pattern as arabic-listening.
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Intuition Trainer',
-        short_name: 'Intuition',
+        name: 'Keen',
+        short_name: 'Keen',
         description: 'Sharpen instinct over calculation -- chess puzzle intuition training and classic black/white card-guessing exercises',
         start_url: '/chess-intuition/',
         scope: '/chess-intuition/',

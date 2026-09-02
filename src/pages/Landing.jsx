@@ -18,7 +18,7 @@ const CATEGORIES = [
 export default function Landing() {
   return (
     <div className="landing-page">
-      <h1>Intuition Trainer</h1>
+      <h1>Keen</h1>
       <p className="tagline">Two ways to sharpen instinct over calculation.</p>
       <div className="mode-cards">
         {CATEGORIES.map((c) => (
