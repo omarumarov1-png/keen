@@ -47,7 +47,8 @@ export default function CardTrain() {
     if (phase !== 'guessing' || !current) return
     setLastGuess(color)
     setPhase('revealed')
-    setQuote(maybePickQuote())
+    const pickedQuote = maybePickQuote()
+    setQuote(pickedQuote)
     const correct = color === current.color
     const newStreak = correct ? state.streak + 1 : 0
     if (correct) {
@@ -61,7 +62,11 @@ export default function CardTrain() {
       hapticError()
     }
     setState(recordGuess(state, correct))
-    advanceRef.current = setTimeout(drawNext, 1400)
+    // A quote needs real reading time -- skip the auto-advance and let the
+    // player tap when they're ready instead of racing a fixed timer.
+    if (!pickedQuote) {
+      advanceRef.current = setTimeout(drawNext, 1400)
+    }
   }
 
   if (!current) return <p>{t('cardtrain.shuffling')}</p>
@@ -123,6 +128,9 @@ export default function CardTrain() {
       </div>
 
       <QuoteBanner quote={quote} />
+      {quote && phase === 'revealed' && (
+        <button className="tap-continue-btn" onClick={drawNext}>{t('tap.continue')}</button>
+      )}
     </div>
   )
 }

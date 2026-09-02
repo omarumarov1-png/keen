@@ -36,7 +36,8 @@ export default function NumberTrain() {
     if (phase !== 'guessing' || !round) return
     setLastGuess(value)
     setPhase('revealed')
-    setQuote(maybePickQuote())
+    const pickedQuote = maybePickQuote()
+    setQuote(pickedQuote)
     const correct = value === round.target
     const newStreak = correct ? state.streak + 1 : 0
     if (correct) {
@@ -51,7 +52,9 @@ export default function NumberTrain() {
     }
     const next = recordNumberGuess(state, correct)
     setState(next)
-    advanceRef.current = setTimeout(() => drawNext(next.digitMode), 1400)
+    if (!pickedQuote) {
+      advanceRef.current = setTimeout(() => drawNext(next.digitMode), 1400)
+    }
   }
 
   if (!round) return <p>{t('cardtrain.shuffling')}</p>
@@ -137,6 +140,9 @@ export default function NumberTrain() {
       </div>
 
       <QuoteBanner quote={quote} />
+      {quote && phase === 'revealed' && (
+        <button className="tap-continue-btn" onClick={() => drawNext(state.digitMode)}>{t('tap.continue')}</button>
+      )}
     </div>
   )
 }

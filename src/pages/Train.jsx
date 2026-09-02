@@ -86,14 +86,17 @@ export default function Train() {
     clearInterval(timerRef.current)
     const correct = attemptedUci === puzzle.solution
     setPhase(attemptedUci === null ? 'timeout' : correct ? 'correct' : 'incorrect')
-    setQuote(maybePickQuote())
+    const pickedQuote = maybePickQuote()
+    setQuote(pickedQuote)
     if (correct) hapticSuccess()
     else hapticError()
     const next = recordAttempt(st, puzzle, correct)
     setState(next)
-    advanceRef.current = setTimeout(() => {
-      startPuzzle(puzzles, next)
-    }, FEEDBACK_DELAY_MS)
+    if (!pickedQuote) {
+      advanceRef.current = setTimeout(() => {
+        startPuzzle(puzzles, next)
+      }, FEEDBACK_DELAY_MS)
+    }
   }
 
   function squareStyleFor(square) {
@@ -196,6 +199,9 @@ export default function Train() {
       </div>
 
       <QuoteBanner quote={quote} />
+      {quote && phase !== 'showing' && (
+        <button className="tap-continue-btn" onClick={() => startPuzzle(puzzles, state)}>{t('tap.continue')}</button>
+      )}
     </div>
   )
 }

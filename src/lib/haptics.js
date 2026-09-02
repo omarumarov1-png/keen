@@ -12,5 +12,7 @@ export function hapticSuccess() {
 }
 
 export function hapticError() {
-  vibrate([40, 60, 40])
+  // Noticeably stronger/longer than success -- three heavy pulses, not a
+  // brief tick, so a wrong answer is unmistakable even in a pocket.
+  vibrate([90, 60, 90, 60, 90])
 }

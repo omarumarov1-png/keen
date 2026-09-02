@@ -524,6 +524,87 @@
   font-variant-numeric: tabular-nums;
 }
 
+.business-guess-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem 0;
+}
+
+.business-yes {
+  background: #eaf7ea;
+  color: #2a7d2a;
+  border-color: #b7ddb7;
+}
+
+.business-no {
+  background: #fbeceb;
+  color: #c0392b;
+  border-color: #e6b3ae;
+}
+
+.business-reveal {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 1.25rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.business-situation {
+  font-size: 1.05rem;
+  line-height: 1.5;
+  margin: 0.5rem 0 1rem;
+  color: var(--text-h);
+}
+
+.business-outcome-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #999;
+  margin: 0 0 0.25rem;
+}
+
+.business-outcome {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 1rem;
+  color: var(--text-h);
+}
+
+.business-outcome.wrong-highlight,
+.business-situation.wrong-highlight {
+  color: #c0392b;
+}
+
+.tap-continue {
+  display: block;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2451b8;
+}
+
+.tap-continue-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.7rem;
+  border-radius: 10px;
+  border: 1px dashed #2451b8;
+  background: none;
+  color: #2451b8;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
 .edge-positive {
   color: #2a7d2a;
 }

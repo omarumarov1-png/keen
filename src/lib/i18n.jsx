@@ -4,13 +4,15 @@ const KEY = 'keen-lang-v1'
 
 const dict = {
   en: {
-    'landing.tagline': 'Three ways to sharpen instinct over calculation.',
+    'landing.tagline': 'Four ways to sharpen instinct over calculation.',
     'landing.chess.label': 'Chess Intuition',
     'landing.chess.desc': 'Flash positions from real games — find the best move on instinct, no calculation.',
     'landing.cards.label': 'Card Intuition',
     'landing.cards.desc': 'Guess black or white before the card flips — classic intuition/ESP-style training.',
     'landing.numbers.label': 'Number Intuition',
     'landing.numbers.desc': 'A number is picked at random — guess it from 4 options before it\'s revealed.',
+    'landing.business.label': 'Business Intuition',
+    'landing.business.desc': 'Yes or no — did this wild business idea actually work? Guess blind, then read the outcome.',
 
     'back.keen': '← Keen',
     'back.menu': '← Menu',
@@ -78,15 +80,27 @@ const dict = {
     'numtrain.prompt': 'Which number is it?',
     'numtrain.correct': '✓ Correct!',
     'numtrain.incorrectPrefix': '✗ It was',
+
+    'business.title': 'Business Intuition',
+    'business.tagline': 'A business idea is about to be described. Before you read a word, guess: did it succeed?',
+    'biztrain.prompt': 'Yes or no — did it succeed?',
+    'biztrain.guessYes': '✓ Yes',
+    'biztrain.guessNo': '✗ No',
+    'biztrain.correct': '✓ Your gut was right!',
+    'biztrain.incorrect': '✗ Your gut was wrong.',
+    'biztrain.outcome': 'What happened:',
+    'tap.continue': 'Tap to continue →',
   },
   ru: {
-    'landing.tagline': 'Три способа отточить интуицию вместо расчёта.',
+    'landing.tagline': 'Четыре способа отточить интуицию вместо расчёта.',
     'landing.chess.label': 'Шахматная интуиция',
     'landing.chess.desc': 'Позиции из реальных партий на короткий показ — найдите лучший ход по наитию, без расчёта.',
     'landing.cards.label': 'Карточная интуиция',
     'landing.cards.desc': 'Угадайте чёрная или белая карта, прежде чем она перевернётся — классическая тренировка интуиции в стиле ESP.',
     'landing.numbers.label': 'Числовая интуиция',
     'landing.numbers.desc': 'Число выбирается случайно — угадайте его из 4 вариантов, прежде чем оно откроется.',
+    'landing.business.label': 'Бизнес-интуиция',
+    'landing.business.desc': 'Да или нет — сработала ли эта безумная бизнес-идея? Угадайте вслепую, потом прочитайте, что случилось.',
 
     'back.keen': '← Keen',
     'back.menu': '← Меню',
@@ -154,6 +168,16 @@ const dict = {
     'numtrain.prompt': 'Какое это число?',
     'numtrain.correct': '✓ Верно!',
     'numtrain.incorrectPrefix': '✗ Это было',
+
+    'business.title': 'Бизнес-интуиция',
+    'business.tagline': 'Сейчас появится описание бизнес-идеи. Прежде чем прочитать хоть слово, угадайте: сработало ли это?',
+    'biztrain.prompt': 'Да или нет — сработало ли это?',
+    'biztrain.guessYes': '✓ Да',
+    'biztrain.guessNo': '✗ Нет',
+    'biztrain.correct': '✓ Ваше чутьё не подвело!',
+    'biztrain.incorrect': '✗ Чутьё подвело.',
+    'biztrain.outcome': 'Что произошло:',
+    'tap.continue': 'Нажмите, чтобы продолжить →',
   },
 }
 

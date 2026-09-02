@@ -48,7 +48,8 @@ export default function SuitTrain() {
     if (phase !== 'guessing' || !current) return
     setLastGuess(suitId)
     setPhase('revealed')
-    setQuote(maybePickQuote())
+    const pickedQuote = maybePickQuote()
+    setQuote(pickedQuote)
     const correct = suitId === current.suit
     const newStreak = correct ? state.streak + 1 : 0
     if (correct) {
@@ -62,7 +63,9 @@ export default function SuitTrain() {
       hapticError()
     }
     setState(recordSuitGuess(state, correct))
-    advanceRef.current = setTimeout(drawNext, 1500)
+    if (!pickedQuote) {
+      advanceRef.current = setTimeout(drawNext, 1500)
+    }
   }
 
   if (!current) return <p>{t('cardtrain.shuffling')}</p>
@@ -124,6 +127,9 @@ export default function SuitTrain() {
       </div>
 
       <QuoteBanner quote={quote} />
+      {quote && phase === 'revealed' && (
+        <button className="tap-continue-btn" onClick={drawNext}>{t('tap.continue')}</button>
+      )}
     </div>
   )
 }
