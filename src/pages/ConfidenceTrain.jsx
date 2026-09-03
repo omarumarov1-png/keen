@@ -16,11 +16,13 @@ const ADVANCE_DELAY_MS = 1600
 export default function ConfidenceTrain() {
   const { t } = useLang()
   const [state, setState] = useState(() => loadConfidenceState())
-  const [current, setCurrent] = useState(null)
-  const [stake, setStake] = useState(null)
-  const [phase, setPhase] = useState('staking') // staking | guessing | revealed
-  const [lastGuess, setLastGuess] = useState(null)
+  // See CardTrain.jsx for why current/stake/phase/lastGuess are bundled
+  // into one state object instead of separate useState calls: a real leak
+  // was caught on-device where the next round's card briefly rendered
+  // while the previous round's feedback text was still showing.
+  const [round, setRound] = useState({ current: null, stake: null, phase: 'staking', lastGuess: null })
   const [quote, setQuote] = useState(null)
+  const { current, stake, phase, lastGuess } = round
 
   const deckRef = useRef([])
   const indexRef = useRef(0)
@@ -33,10 +35,7 @@ export default function ConfidenceTrain() {
     }
     const card = deckRef.current[indexRef.current]
     indexRef.current += 1
-    setCurrent(card)
-    setStake(null)
-    setPhase('staking')
-    setLastGuess(null)
+    setRound({ current: card, stake: null, phase: 'staking', lastGuess: null })
     setQuote(null)
   }, [])
 
@@ -50,14 +49,12 @@ export default function ConfidenceTrain() {
 
   function chooseStake(value) {
     if (phase !== 'staking') return
-    setStake(value)
-    setPhase('guessing')
+    setRound((r) => ({ ...r, stake: value, phase: 'guessing' }))
   }
 
   function guess(color) {
     if (phase !== 'guessing' || !current || !stake) return
-    setLastGuess(color)
-    setPhase('revealed')
+    setRound((r) => ({ ...r, phase: 'revealed', lastGuess: color }))
     const pickedQuote = maybePickQuote()
     setQuote(pickedQuote)
     const correct = color === current.color

@@ -13,10 +13,13 @@ import QuoteBanner from '../components/QuoteBanner.jsx'
 export default function SuitTrain() {
   const { t, lang } = useLang()
   const [state, setState] = useState(() => loadSuitState())
-  const [current, setCurrent] = useState(null)
-  const [phase, setPhase] = useState('guessing') // guessing | revealed
-  const [lastGuess, setLastGuess] = useState(null)
+  // See CardTrain.jsx for why current/phase/lastGuess are bundled into one
+  // state object instead of separate useState calls: a real leak was caught
+  // on-device where the next round's card briefly rendered while the
+  // previous round's feedback text was still showing.
+  const [round, setRound] = useState({ current: null, phase: 'guessing', lastGuess: null })
   const [quote, setQuote] = useState(null)
+  const { current, phase, lastGuess } = round
 
   const deckRef = useRef([])
   const indexRef = useRef(0)
@@ -30,9 +33,7 @@ export default function SuitTrain() {
     }
     const card = deckRef.current[indexRef.current]
     indexRef.current += 1
-    setCurrent(card)
-    setPhase('guessing')
-    setLastGuess(null)
+    setRound({ current: card, phase: 'guessing', lastGuess: null })
     setQuote(null)
   }, [])
 
@@ -46,8 +47,7 @@ export default function SuitTrain() {
 
   function guess(suitId) {
     if (phase !== 'guessing' || !current) return
-    setLastGuess(suitId)
-    setPhase('revealed')
+    setRound((r) => ({ ...r, phase: 'revealed', lastGuess: suitId }))
     const pickedQuote = maybePickQuote()
     setQuote(pickedQuote)
     const correct = suitId === current.suit

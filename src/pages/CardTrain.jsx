@@ -13,10 +13,18 @@ import QuoteBanner from '../components/QuoteBanner.jsx'
 export default function CardTrain() {
   const { t } = useLang()
   const [state, setState] = useState(() => loadCardState())
-  const [current, setCurrent] = useState(null)
-  const [phase, setPhase] = useState('guessing') // guessing | revealed
-  const [lastGuess, setLastGuess] = useState(null)
+  // current/phase/lastGuess/quote live in ONE state object, updated via a
+  // single setRound call each time. Two separate useState calls updated
+  // together (even in the same synchronous function body) are not a hard
+  // guarantee against an observer seeing them apply in different renders on
+  // every JS engine/timing profile -- a real leak was caught on-device where
+  // the next round's card briefly rendered while the previous round's
+  // "Correct!"/"Not quite" text was still showing. Bundling them into one
+  // object makes that class of bug structurally impossible: there is only
+  // ever one state value to read, so it can never be self-inconsistent.
+  const [round, setRound] = useState({ current: null, phase: 'guessing', lastGuess: null })
   const [quote, setQuote] = useState(null)
+  const { current, phase, lastGuess } = round
 
   const deckRef = useRef([])
   const indexRef = useRef(0)
@@ -29,9 +37,7 @@ export default function CardTrain() {
     }
     const card = deckRef.current[indexRef.current]
     indexRef.current += 1
-    setCurrent(card)
-    setPhase('guessing')
-    setLastGuess(null)
+    setRound({ current: card, phase: 'guessing', lastGuess: null })
     setQuote(null)
   }, [])
 
@@ -45,8 +51,7 @@ export default function CardTrain() {
 
   function guess(color) {
     if (phase !== 'guessing' || !current) return
-    setLastGuess(color)
-    setPhase('revealed')
+    setRound((r) => ({ ...r, phase: 'revealed', lastGuess: color }))
     const pickedQuote = maybePickQuote()
     setQuote(pickedQuote)
     const correct = color === current.color
