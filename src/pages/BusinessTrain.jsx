@@ -1,106 +1,91 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { useRef, useState } from 'react'
 import { pickRandom, RECENT_WINDOW } from '../lib/businessScenarios.js'
 import { loadBusinessState, recordBusinessGuess } from '../lib/businessProgress.js'
 import { hapticSuccess, hapticError } from '../lib/haptics.js'
-import { burstSmall, burstCelebration } from '../lib/confetti.js'
 import { useLang } from '../lib/i18n.jsx'
-import { maybePickQuote } from '../lib/quotes.js'
-import QuoteBanner from '../components/QuoteBanner.jsx'
+import TrainShell from '../components/TrainShell.jsx'
+import TapZones from '../components/TapZones.jsx'
+import { READY_LOCK_MS } from '../lib/eyesFree.jsx'
+
+function Check() {
+  return <svg className="zone-disc" viewBox="0 0 100 100"><path d="M22 52l18 18 38-40" fill="none" stroke="currentColor" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round" /></svg>
+}
+function Cross() {
+  return <svg className="zone-disc" viewBox="0 0 100 100"><path d="M28 28l44 44M72 28L28 72" fill="none" stroke="currentColor" strokeWidth="11" strokeLinecap="round" /></svg>
+}
 
 export default function BusinessTrain() {
   const { t } = useLang()
   const [state, setState] = useState(() => loadBusinessState())
-  const [current, setCurrent] = useState(null)
-  const [phase, setPhase] = useState('guessing') // guessing | revealed
-  const [lastGuess, setLastGuess] = useState(null)
-  const [quote, setQuote] = useState(null)
-
+  // current/phase/lastGuess in one atomic state object
+  const [play, setPlay] = useState(() => ({ current: pickRandom([]), phase: 'guessing', lastGuess: null }))
+  const { current, phase, lastGuess } = play
   const recentIds = useRef([])
 
-  const drawNext = useCallback(() => {
-    const scenario = pickRandom(recentIds.current)
-    recentIds.current = [scenario.id, ...recentIds.current].slice(0, RECENT_WINDOW)
-    setCurrent(scenario)
-    setPhase('guessing')
-    setLastGuess(null)
-    setQuote(null)
-  }, [])
+  const lockRef = useRef(false)
+  const unlockRef = useRef(null)
 
-  useEffect(() => {
-    drawNext()
-  }, [drawNext])
-
-  function guess(value) {
-    if (phase !== 'guessing' || !current) return
-    setLastGuess(value)
-    setPhase('revealed')
-    setQuote(maybePickQuote())
-    const correct = value === current.result
-    const newStreak = correct ? state.streak + 1 : 0
-    if (correct) {
-      hapticSuccess()
-      if (newStreak >= 5 && newStreak === state.bestStreak + 1) {
-        burstCelebration()
-      } else {
-        burstSmall()
-      }
-    } else {
-      hapticError()
-    }
-    setState(recordBusinessGuess(state, correct))
-    // No auto-advance -- these take real time to read, the player taps when ready.
+  function drawNext() {
+    if (lockRef.current) return
+    lockRef.current = true
+    recentIds.current = [current.id, ...recentIds.current].slice(0, RECENT_WINDOW)
+    setPlay({ current: pickRandom(recentIds.current), phase: 'guessing', lastGuess: null })
+    clearTimeout(unlockRef.current)
+    unlockRef.current = setTimeout(() => { lockRef.current = false }, READY_LOCK_MS)
   }
 
-  if (!current) return <p>…</p>
+  function guess(value) {
+    if (lockRef.current || phase !== 'guessing') return
+    lockRef.current = true
+    const correct = value === current.result
+    if (correct) hapticSuccess()
+    else hapticError()
+    setPlay((p) => ({ ...p, phase: 'revealed', lastGuess: value }))
+    setState(recordBusinessGuess(state, correct))
+    // This mode is about reading what happened, so the reveal waits for a tap
+    // (anywhere on the panel) instead of auto-advancing.
+    clearTimeout(unlockRef.current)
+    unlockRef.current = setTimeout(() => { lockRef.current = false }, 600)
+  }
 
   const accuracy = state.totalGuesses > 0 ? Math.round((state.totalCorrect / state.totalGuesses) * 100) : 0
   const correct = lastGuess === current.result
 
+  const stats = [
+    { key: 'streak', label: t('hud.streak'), value: state.streak },
+    { key: 'acc', label: t('hud.accuracy'), value: `${accuracy}%` },
+  ]
+
+  if (phase === 'guessing') {
+    return (
+      <TrainShell
+        backTo="/business"
+        stats={stats}
+        zones={
+          <TapZones
+            layout="halves"
+            zones={[
+              { id: 'yes', tone: 'yes', glyph: <Check />, label: t('zone.yes') },
+              { id: 'no', tone: 'no', glyph: <Cross />, label: t('zone.no') },
+            ]}
+            onPick={guess}
+          />
+        }
+      >
+        <p className="stage-question">{t('biztrain.prompt')}</p>
+      </TrainShell>
+    )
+  }
+
   return (
-    <div className="cardtrain-page business-train">
-      <div className="train-hud">
-        <Link to="/business" className="back-link">{t('back.menu')}</Link>
-        <div className="hud-stats">
-          <span>
-            {t('train.streak')} <motion.strong key={state.streak} initial={{ scale: 1.5 }} animate={{ scale: 1 }}>{state.streak}</motion.strong>
-          </span>
-          <span>{t('train.accuracy')} <strong>{accuracy}%</strong></span>
-        </div>
-      </div>
-
-      {phase === 'guessing' ? (
-        <div className="business-guess-stage">
-          <p className="card-prompt">{t('biztrain.prompt')}</p>
-          <div className="guess-buttons">
-            <motion.button className="guess-btn business-yes" onClick={() => guess('yes')} whileTap={{ scale: 0.94 }}>
-              {t('biztrain.guessYes')}
-            </motion.button>
-            <motion.button className="guess-btn business-no" onClick={() => guess('no')} whileTap={{ scale: 0.94 }}>
-              {t('biztrain.guessNo')}
-            </motion.button>
-          </div>
-        </div>
-      ) : (
-        <motion.button
-          className="business-reveal"
-          onClick={drawNext}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.25 }}
-        >
-          <p className={`feedback ${correct ? 'correct' : 'incorrect'}`}>
-            {correct ? t('biztrain.correct') : t('biztrain.incorrect')}
-          </p>
-          <p className={`business-situation ${!correct ? 'wrong-highlight' : ''}`}>{current.situation}</p>
-          <p className="business-outcome-label">{t('biztrain.outcome')}</p>
-          <p className={`business-outcome ${!correct ? 'wrong-highlight' : ''}`}>{current.outcome}</p>
-          <span className="tap-continue">{t('tap.continue')}</span>
-        </motion.button>
-      )}
-
-      <AnimatePresence>{quote && <QuoteBanner quote={quote} />}</AnimatePresence>
-    </div>
+    <TrainShell backTo="/business" stats={stats} className="is-reading">
+      <button type="button" className={`business-reveal result-${correct ? 'right' : 'wrong'}`} onClick={drawNext}>
+        <span className="business-verdict">{correct ? t('biztrain.correct') : t('biztrain.incorrect')}</span>
+        <span className="business-situation">{current.situation}</span>
+        <span className="business-outcome-label">{t('biztrain.outcome')}</span>
+        <span className="business-outcome">{current.outcome}</span>
+        <span className="tap-continue">{t('tap.continue')}</span>
+      </button>
+    </TrainShell>
   )
 }

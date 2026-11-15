@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Chessboard } from 'react-chessboard'
 import { loadPuzzles, preparePuzzle, pickNextPuzzle } from '../lib/puzzles.js'
 import { loadState, recordAttempt } from '../lib/progress.js'
 import { hapticSuccess, hapticError } from '../lib/haptics.js'
 import { useLang } from '../lib/i18n.jsx'
-import { maybePickQuote } from '../lib/quotes.js'
-import QuoteBanner from '../components/QuoteBanner.jsx'
+import TrainShell from '../components/TrainShell.jsx'
 
 const RECENT_WINDOW = 40
 const FEEDBACK_DELAY_MS = 1300
@@ -20,14 +18,20 @@ export default function Train() {
   const [legalTargets, setLegalTargets] = useState([])
   const [phase, setPhase] = useState('loading') // loading | showing | correct | incorrect | timeout
   const [timeLeft, setTimeLeft] = useState(0)
-  const [quote, setQuote] = useState(null)
 
   const recentIds = useRef([])
+  // The exposure timer is created inside startPuzzle (memoised once), so it
+  // calls a resolveAttempt from the first render, where `puzzles` was still
+  // null -- a timeout then crashed instead of advancing. Read it from a ref.
+  const puzzlesRef = useRef(null)
   const timerRef = useRef(null)
   const advanceRef = useRef(null)
 
   useEffect(() => {
-    loadPuzzles().then(setPuzzles)
+    loadPuzzles().then((p) => {
+      puzzlesRef.current = p
+      setPuzzles(p)
+    })
     return () => {
       clearInterval(timerRef.current)
       clearTimeout(advanceRef.current)
@@ -44,7 +48,6 @@ export default function Train() {
       setLegalTargets([])
       setPhase('showing')
       setTimeLeft(st.exposureSeconds)
-      setQuote(null)
 
       clearInterval(timerRef.current)
       const startedAt = Date.now()
@@ -86,31 +89,27 @@ export default function Train() {
     clearInterval(timerRef.current)
     const correct = attemptedUci === puzzle.solution
     setPhase(attemptedUci === null ? 'timeout' : correct ? 'correct' : 'incorrect')
-    const pickedQuote = maybePickQuote()
-    setQuote(pickedQuote)
     if (correct) hapticSuccess()
     else hapticError()
     const next = recordAttempt(st, puzzle, correct)
     setState(next)
-    if (!pickedQuote) {
-      advanceRef.current = setTimeout(() => {
-        startPuzzle(puzzles, next)
-      }, FEEDBACK_DELAY_MS)
-    }
+    advanceRef.current = setTimeout(() => {
+      startPuzzle(puzzlesRef.current, next)
+    }, FEEDBACK_DELAY_MS)
   }
 
   function squareStyleFor(square) {
     const styles = {}
     if (selected === square) {
-      styles.backgroundColor = 'rgba(255, 215, 0, 0.5)'
+      styles.backgroundColor = 'rgba(232, 176, 75, 0.6)'
     }
     if (legalTargets.includes(square)) {
-      styles.backgroundColor = 'rgba(0, 150, 0, 0.25)'
+      styles.backgroundColor = 'rgba(43, 214, 123, 0.32)'
     }
     if (phase !== 'showing' && current) {
       const [from, to] = [current.solution.slice(0, 2), current.solution.slice(2, 4)]
       if (square === from || square === to) {
-        styles.backgroundColor = phase === 'correct' ? 'rgba(0, 180, 0, 0.45)' : 'rgba(200, 0, 0, 0.35)'
+        styles.backgroundColor = phase === 'correct' ? 'rgba(43, 214, 123, 0.55)' : 'rgba(255, 90, 78, 0.5)'
       }
     }
     return styles
@@ -148,60 +147,56 @@ export default function Train() {
     return true
   }
 
-  if (!current) return <p>{t('train.loading')}</p>
+  if (!current) return <div className="train-shell"><p className="stage-question">{t('train.loading')}</p></div>
 
   const accuracy = state.totalAttempts > 0 ? Math.round((state.totalCorrect / state.totalAttempts) * 100) : 0
+  const stats = [
+    { key: 'rating', label: t('hud.rating'), value: state.rating },
+    { key: 'streak', label: t('hud.streak'), value: state.streak },
+    { key: 'acc', label: t('hud.accuracy'), value: `${accuracy}%` },
+  ]
 
   return (
-    <div className="train-page">
-      <div className="train-hud">
-        <Link to="/chess" className="back-link">{t('back.menu')}</Link>
-        <div className="hud-stats">
-          <span>{t('train.rating')} <strong>{state.rating}</strong></span>
-          <span>{t('train.streak')} <strong>{state.streak}</strong></span>
-          <span>{t('train.accuracy')} <strong>{accuracy}%</strong></span>
+    <TrainShell backTo="/chess" stats={stats} className="chess-shell">
+      <div className="chess-col">
+        <div className={`timer-bar-track ${phase !== 'showing' ? 'paused' : ''}`}>
+          <div
+            className="timer-bar-fill"
+            style={{ width: `${(timeLeft / state.exposureSeconds) * 100}%` }}
+          />
+        </div>
+
+        <div className={`board-wrap${phase === 'correct' ? ' result-right' : phase === 'incorrect' || phase === 'timeout' ? ' result-wrong' : ''}`}>
+          <Chessboard
+            options={{
+              position: current.positionFen,
+              boardOrientation: current.turn === 'w' ? 'white' : 'black',
+              onSquareClick: handleSquareClick,
+              onPieceDrop: handlePieceDrop,
+              lightSquareStyle: { backgroundColor: '#ece2cc' },
+              darkSquareStyle: { backgroundColor: '#a47e55' },
+              squareStyles: Object.fromEntries(
+                [selected, ...legalTargets, current.solution.slice(0, 2), current.solution.slice(2, 4)]
+                  .filter(Boolean)
+                  .map((sq) => [sq, squareStyleFor(sq)])
+              ),
+              showAnimations: false,
+            }}
+          />
+        </div>
+
+        <div className="feedback-row">
+          {phase === 'correct' && <p className="feedback correct">{t('train.correct')}</p>}
+          {phase === 'incorrect' && <p className="feedback incorrect">{t('train.incorrect')}</p>}
+          {phase === 'timeout' && <p className="feedback incorrect">{t('train.timeout')}</p>}
+          {phase === 'showing' && (
+            <p className="feedback">
+              <span className={`turn-dot turn-${current.turn}`} aria-hidden="true" />
+              {t('train.findMoveFor')} {current.turn === 'w' ? t('train.white') : t('train.black')}
+            </p>
+          )}
         </div>
       </div>
-
-      <div className={`timer-bar-track ${phase !== 'showing' ? 'paused' : ''}`}>
-        <div
-          className="timer-bar-fill"
-          style={{ width: `${(timeLeft / state.exposureSeconds) * 100}%` }}
-        />
-      </div>
-
-      <div className="board-wrap">
-        <Chessboard
-          options={{
-            position: current.positionFen,
-            boardOrientation: current.turn === 'w' ? 'white' : 'black',
-            onSquareClick: handleSquareClick,
-            onPieceDrop: handlePieceDrop,
-            squareStyles: Object.fromEntries(
-              [selected, ...legalTargets, current.solution.slice(0, 2), current.solution.slice(2, 4)]
-                .filter(Boolean)
-                .map((sq) => [sq, squareStyleFor(sq)])
-            ),
-            showAnimations: false,
-          }}
-        />
-      </div>
-
-      <div className="feedback-row">
-        {phase === 'correct' && <p className="feedback correct">{t('train.correct')}</p>}
-        {phase === 'incorrect' && <p className="feedback incorrect">{t('train.incorrect')}</p>}
-        {phase === 'timeout' && <p className="feedback incorrect">{t('train.timeout')}</p>}
-        {phase === 'showing' && (
-          <p className="feedback">
-            {t('train.findMoveFor')} {current.turn === 'w' ? t('train.white') : t('train.black')}
-          </p>
-        )}
-      </div>
-
-      <QuoteBanner quote={quote} />
-      {quote && phase !== 'showing' && (
-        <button className="tap-continue-btn" onClick={() => startPuzzle(puzzles, state)}>{t('tap.continue')}</button>
-      )}
-    </div>
+    </TrainShell>
   )
 }

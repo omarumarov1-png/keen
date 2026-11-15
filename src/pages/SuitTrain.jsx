@@ -1,29 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
-import { buildDeck, shuffle, SUITS } from '../lib/cards.js'
+import { buildDeck, shuffle } from '../lib/cards.js'
 import { loadSuitState, recordSuitGuess } from '../lib/suitProgress.js'
 import { hapticSuccess, hapticError } from '../lib/haptics.js'
-import { burstSmall, burstCelebration } from '../lib/confetti.js'
-import { useLang, suitNameForFeedback } from '../lib/i18n.jsx'
-import { maybePickQuote } from '../lib/quotes.js'
+import { useLang } from '../lib/i18n.jsx'
 import PlayingCard from '../components/PlayingCard.jsx'
-import QuoteBanner from '../components/QuoteBanner.jsx'
+import TrainShell from '../components/TrainShell.jsx'
+import TapZones from '../components/TapZones.jsx'
+import { suitZones, REVEAL_MS, READY_LOCK_MS, edgeTone } from '../lib/eyesFree.jsx'
 
 export default function SuitTrain() {
-  const { t, lang } = useLang()
+  const { t } = useLang()
   const [state, setState] = useState(() => loadSuitState())
   // See CardTrain.jsx for why current/phase/lastGuess are bundled into one
   // state object instead of separate useState calls: a real leak was caught
   // on-device where the next round's card briefly rendered while the
   // previous round's feedback text was still showing.
   const [round, setRound] = useState({ current: null, phase: 'guessing', lastGuess: null })
-  const [quote, setQuote] = useState(null)
   const { current, phase, lastGuess } = round
 
   const deckRef = useRef([])
   const indexRef = useRef(0)
   const advanceRef = useRef(null)
+  const unlockRef = useRef(null)
+  // See CardTrain.jsx: synchronous lock against double answers.
+  const lockRef = useRef(false)
+  const [locked, setLocked] = useState(false)
 
   const drawNext = useCallback(() => {
     if (indexRef.current >= deckRef.current.length) {
@@ -34,107 +35,65 @@ export default function SuitTrain() {
     const card = deckRef.current[indexRef.current]
     indexRef.current += 1
     setRound({ current: card, phase: 'guessing', lastGuess: null })
-    setQuote(null)
+    clearTimeout(unlockRef.current)
+    unlockRef.current = setTimeout(() => {
+      lockRef.current = false
+      setLocked(false)
+    }, READY_LOCK_MS)
   }, [])
 
   useEffect(() => {
     deckRef.current = shuffle(buildDeck({ includeJokers: false }))
     indexRef.current = 0
+    lockRef.current = false
     drawNext()
-    return () => clearTimeout(advanceRef.current)
+    return () => {
+      clearTimeout(advanceRef.current)
+      clearTimeout(unlockRef.current)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function guess(suitId) {
-    if (phase !== 'guessing' || !current) return
-    setRound((r) => ({ ...r, phase: 'revealed', lastGuess: suitId }))
-    const pickedQuote = maybePickQuote()
-    setQuote(pickedQuote)
+    if (lockRef.current || phase !== 'guessing' || !current) return
+    lockRef.current = true
+    setLocked(true)
     const correct = suitId === current.suit
-    const newStreak = correct ? state.streak + 1 : 0
-    if (correct) {
-      hapticSuccess()
-      if (newStreak >= 5 && newStreak === state.bestStreak + 1) {
-        burstCelebration()
-      } else {
-        burstSmall()
-      }
-    } else {
-      hapticError()
-    }
+    if (correct) hapticSuccess()
+    else hapticError()
+    setRound((r) => ({ ...r, phase: 'revealed', lastGuess: suitId }))
     setState(recordSuitGuess(state, correct))
-    if (!pickedQuote) {
-      advanceRef.current = setTimeout(drawNext, 1500)
-    }
+    advanceRef.current = setTimeout(drawNext, REVEAL_MS)
   }
 
-  if (!current) return <p>{t('cardtrain.shuffling')}</p>
+  if (!current) return <div className="train-shell" />
 
   const accuracy = state.totalGuesses > 0 ? Math.round((state.totalCorrect / state.totalGuesses) * 100) : 0
   const edge = state.totalGuesses >= 8 ? accuracy - 25 : null
+  const revealed = phase === 'revealed'
+  const result = revealed ? (lastGuess === current.suit ? 'right' : 'wrong') : null
+
+  const stats = [
+    { key: 'streak', label: t('hud.streak'), value: state.streak },
+    { key: 'acc', label: t('hud.accuracy'), value: `${accuracy}%` },
+  ]
+  if (edge !== null) stats.push({ key: 'edge', label: t('hud.edge'), value: `${edge > 0 ? '+' : ''}${edge}`, tone: edgeTone(edge) })
 
   return (
-    <div className="cardtrain-page">
-      <div className="train-hud">
-        <Link to="/cards" className="back-link">{t('back.menu')}</Link>
-        <div className="hud-stats">
-          <span>
-            {t('train.streak')} <motion.strong key={state.streak} initial={{ scale: 1.5 }} animate={{ scale: 1 }}>{state.streak}</motion.strong>
-          </span>
-          <span>{t('train.accuracy')} <strong>{accuracy}%</strong></span>
-          {edge !== null && (
-            <span className={edge > 0 ? 'edge-positive' : edge < 0 ? 'edge-negative' : ''}>
-              {edge > 0 ? '+' : ''}{edge} {t('cardtrain.vsChance')}
-            </span>
-          )}
-        </div>
-      </div>
-
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={phase === 'guessing' ? 'guessing' : lastGuess === current.suit ? 'correct' : 'incorrect'}
-          className="card-prompt"
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 6 }}
-          transition={{ duration: 0.18 }}
-        >
-          {phase === 'guessing'
-            ? t('suittrain.prompt')
-            : lastGuess === current.suit
-              ? t('suittrain.correct')
-              : `${t('suittrain.incorrectPrefix')} ${suitNameForFeedback(lang, current.suit)}`}
-        </motion.p>
-      </AnimatePresence>
-
-      <div className="card-stage">
-        <PlayingCard
-          revealed={phase === 'revealed'}
-          card={current}
-          colorMode="suit"
-          result={phase === 'revealed' ? (lastGuess === current.suit ? 'right' : 'wrong') : null}
+    <TrainShell
+      backTo="/cards"
+      stats={stats}
+      zones={
+        <TapZones
+          layout="quad"
+          zones={suitZones(t)}
+          onPick={guess}
+          locked={locked}
+          feedback={revealed ? { picked: lastGuess, result, actual: current.suit } : null}
         />
-      </div>
-
-      <div className="suit-buttons">
-        {SUITS.map((s) => (
-          <motion.button
-            key={s.id}
-            className={`suit-btn suit-btn-${s.trueColor}`}
-            onClick={() => guess(s.id)}
-            disabled={phase !== 'guessing'}
-            whileTap={{ scale: 0.92 }}
-          >
-            <span className="suit-symbol">{s.symbol}</span>
-            <span className="suit-name">{t(`suit.${s.id}`)}</span>
-          </motion.button>
-        ))}
-      </div>
-
-      <QuoteBanner quote={quote} />
-      {quote && phase === 'revealed' && (
-        <button className="tap-continue-btn" onClick={drawNext}>{t('tap.continue')}</button>
-      )}
-    </div>
+      }
+    >
+      <PlayingCard revealed={revealed} card={current} size="stage" colorMode="suit" result={result} />
+    </TrainShell>
   )
 }

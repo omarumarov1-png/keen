@@ -1,7 +1,11 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { loadNumberState, setDigitMode } from '../lib/numberProgress.js'
 import { useLang } from '../lib/i18n.jsx'
+import { NumbersEmblem } from '../components/Emblems.jsx'
+import ModeHeader, { StatRow } from '../components/ModeHeader.jsx'
+import ZoneMap from '../components/ZoneMap.jsx'
+import EyesFreeNote from '../components/EyesFreeNote.jsx'
 
 const MODES = [
   { id: 'd1', icon: '1', labelKey: 'numbers.mode.d1.label', descKey: 'numbers.mode.d1.desc' },
@@ -25,30 +29,30 @@ export default function NumberHome() {
 
   return (
     <div className="home-page">
-      <Link to="/" className="back-link">{t('back.keen')}</Link>
-      <h1>{t('numbers.title')}</h1>
-      <p className="tagline">{t('numbers.tagline')}</p>
+      <ModeHeader hue="numbers" Emblem={NumbersEmblem} title={t('numbers.title')} tagline={t('numbers.tagline')} />
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <span className="stat-value">{state.bestStreak}</span>
-          <span className="stat-label">{t('stat.bestStreak')}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-value">{accuracy}%</span>
-          <span className="stat-label">{t('stat.accuracy')}</span>
-        </div>
-      </div>
+      <StatRow
+        items={[
+          { label: t('stat.bestStreak'), value: state.bestStreak },
+          { label: t('stat.accuracy'), value: `${accuracy}%` },
+        ]}
+      />
 
-      <div className="mode-cards">
+      <div className="digit-grid hue-numbers">
         {MODES.map((m) => (
-          <button key={m.id} className="mode-card" onClick={() => startMode(m.id)}>
-            <span className="mode-icon number-mode-icon">{m.icon}</span>
-            <span className="mode-label">{t(m.labelKey)}</span>
-            <span className="mode-desc">{t(m.descKey)}</span>
+          <button key={m.id} className="digit-tile" onClick={() => startMode(m.id)}>
+            <span className="digit-icon">{m.icon}</span>
+            <span className="tile-label">{t(m.labelKey)}</span>
+            <span className="tile-desc">{t(m.descKey)}</span>
           </button>
         ))}
       </div>
+
+      <div className="zone-explain hue-numbers">
+        <ZoneMap layout="quad" zones={['a', 'b', 'c', 'd'].map((id) => ({ id, tone: 'number', glyph: '#' }))} />
+        <p>{t('zones.numbers')}</p>
+      </div>
+      <EyesFreeNote />
     </div>
   )
 }

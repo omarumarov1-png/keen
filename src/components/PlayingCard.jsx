@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion'
+import SuitIcon from './SuitIcon.jsx'
 
 // A real 3D flip: the card physically rotates around its Y axis rather than
 // swapping content instantly. `card` may be null while face-down (nothing
@@ -12,8 +13,10 @@ import { motion, useReducedMotion } from 'framer-motion'
 // instant `revealed` goes false, regardless of what `card` now points to,
 // so there's nothing to glimpse mid-rotation.
 //
-// `result` ('right' | 'wrong' | null) only drives the glow/shake around the
-// card after a reveal; it never affects what the face shows.
+// `result` ('right' | 'wrong' | null) only drives the calm right/wrong glow
+// around the card after a reveal; it never affects what the face shows.
+// (There is deliberately no shake any more: training screens must stay
+// distraction-free for eyes-free play.)
 const FACE_RANKS = { J: 'Jack', Q: 'Queen', K: 'King' }
 
 // Switching between the 'up' and 'down' variants replays the same keyframes on
@@ -58,15 +61,8 @@ export default function PlayingCard({ revealed, card, size = 'normal', colorMode
   const isFace = showFace && FACE_RANKS[card.rank]
   const shown = revealed && result ? result : null
 
-  // A short shake only on a wrong answer (and never under reduced motion).
-  const shake = !reduce && shown === 'wrong' ? { x: [0, -9, 8, -6, 4, -2, 0] } : { x: 0 }
-
   return (
-    <motion.div
-      className={`flip-scene flip-scene-${size}${shown ? ` result-${shown}` : ''}`}
-      animate={shake}
-      transition={{ duration: 0.45, delay: 0.32 }}
-    >
+    <div className={`flip-scene flip-scene-${size}${shown ? ` result-${shown}` : ''}`}>
       <motion.div
         className="flip-shadow"
         aria-hidden="true"
@@ -98,7 +94,7 @@ export default function PlayingCard({ revealed, card, size = 'normal', colorMode
                 <span className="card-inner-frame" aria-hidden="true" />
                 <span className="card-corner card-corner-tl">
                   <b>{isJoker ? 'J' : card.rank}</b>
-                  <i>{card.symbol}</i>
+                  <SuitIcon suit={card.suit} className="card-corner-pip" />
                 </span>
                 <motion.span
                   className={`card-center${isJoker ? ' card-center-joker' : ''}`}
@@ -107,13 +103,13 @@ export default function PlayingCard({ revealed, card, size = 'normal', colorMode
                   transition={{ delay: 0.28, type: 'spring', stiffness: 300, damping: 18 }}
                 >
                   {isFace && <Crown />}
-                  <span className="card-center-symbol">{card.symbol}</span>
+                  <SuitIcon suit={card.suit} className="card-center-symbol" />
                   {isJoker && <span className="card-joker-word">JOKER</span>}
                   {isFace && <span className="card-face-name">{FACE_RANKS[card.rank]}</span>}
                 </motion.span>
                 <span className="card-corner card-corner-br">
                   <b>{isJoker ? 'J' : card.rank}</b>
-                  <i>{card.symbol}</i>
+                  <SuitIcon suit={card.suit} className="card-corner-pip" />
                 </span>
                 {!reduce && <span className="card-face-sheen" aria-hidden="true" />}
               </>
@@ -121,6 +117,6 @@ export default function PlayingCard({ revealed, card, size = 'normal', colorMode
           </div>
         </motion.div>
       </motion.div>
-    </motion.div>
+    </div>
   )
 }

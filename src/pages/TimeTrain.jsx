@@ -1,121 +1,118 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
 import { loadTimeState, recordTimeGuess } from '../lib/timeProgress.js'
-import { hapticSuccess, hapticError } from '../lib/haptics.js'
-import { burstSmall, burstCelebration } from '../lib/confetti.js'
+import { hapticSuccess, hapticError, hapticTap } from '../lib/haptics.js'
 import { useLang } from '../lib/i18n.jsx'
-import { maybePickQuote } from '../lib/quotes.js'
-import QuoteBanner from '../components/QuoteBanner.jsx'
+import TrainShell from '../components/TrainShell.jsx'
+import TapZones from '../components/TapZones.jsx'
+import { READY_LOCK_MS } from '../lib/eyesFree.jsx'
 
 const TARGETS = [3, 4, 5, 6, 7, 8]
 const TOLERANCE_SEC = 0.5
 const ADVANCE_DELAY_MS = 1800
 
+function randomTarget() {
+  return TARGETS[Math.floor(Math.random() * TARGETS.length)]
+}
+
 export default function TimeTrain() {
   const { t } = useLang()
   const [state, setState] = useState(() => loadTimeState())
-  const [target, setTarget] = useState(TARGETS[0])
-  const [phase, setPhase] = useState('ready') // ready | waiting | revealed
-  const [elapsed, setElapsed] = useState(null)
-  const [quote, setQuote] = useState(null)
+  // target/phase/elapsed in one atomic state object
+  const [play, setPlay] = useState(() => ({ target: randomTarget(), phase: 'ready', elapsed: null }))
+  const { target, phase, elapsed } = play
 
   const startedAtRef = useRef(0)
   const advanceRef = useRef(null)
+  const unlockRef = useRef(null)
+  const lockRef = useRef(false)
+  const [locked, setLocked] = useState(false)
 
-  const drawNext = useCallback(() => {
-    setTarget(TARGETS[Math.floor(Math.random() * TARGETS.length)])
-    setPhase('ready')
-    setElapsed(null)
-    setQuote(null)
-  }, [])
-
-  useEffect(() => {
-    drawNext()
-    return () => clearTimeout(advanceRef.current)
-  }, [drawNext])
-
-  function start() {
-    startedAtRef.current = Date.now()
-    setPhase('waiting')
+  function lockFor(ms) {
+    lockRef.current = true
+    setLocked(true)
+    clearTimeout(unlockRef.current)
+    unlockRef.current = setTimeout(() => {
+      lockRef.current = false
+      setLocked(false)
+    }, ms)
   }
 
-  function stop() {
+  useEffect(() => () => {
+    clearTimeout(advanceRef.current)
+    clearTimeout(unlockRef.current)
+  }, [])
+
+  function drawNext() {
+    setPlay({ target: randomTarget(), phase: 'ready', elapsed: null })
+    lockFor(READY_LOCK_MS)
+  }
+
+  function onZone() {
+    if (lockRef.current) return
+    if (phase === 'ready') {
+      hapticTap()
+      startedAtRef.current = performance.now()
+      setPlay((p) => ({ ...p, phase: 'waiting' }))
+      lockFor(READY_LOCK_MS) // a double tap must not start AND stop
+      return
+    }
     if (phase !== 'waiting') return
-    const secs = (Date.now() - startedAtRef.current) / 1000
-    setElapsed(secs)
-    setPhase('revealed')
-    const diff = Math.abs(secs - target)
-    const correct = diff <= TOLERANCE_SEC
-    const pickedQuote = maybePickQuote()
-    setQuote(pickedQuote)
-    const newStreak = correct ? state.streak + 1 : 0
-    if (correct) {
-      hapticSuccess()
-      if (newStreak >= 5 && newStreak === state.bestStreak + 1) {
-        burstCelebration()
-      } else {
-        burstSmall()
-      }
-    } else {
-      hapticError()
-    }
+    const secs = (performance.now() - startedAtRef.current) / 1000
+    const correct = Math.abs(secs - target) <= TOLERANCE_SEC
+    lockRef.current = true
+    setLocked(true)
+    clearTimeout(unlockRef.current)
+    if (correct) hapticSuccess()
+    else hapticError()
+    setPlay((p) => ({ ...p, phase: 'revealed', elapsed: secs }))
     setState(recordTimeGuess(state, correct))
-    if (!pickedQuote) {
-      advanceRef.current = setTimeout(drawNext, ADVANCE_DELAY_MS)
-    }
+    advanceRef.current = setTimeout(drawNext, ADVANCE_DELAY_MS)
   }
 
   const accuracy = state.totalGuesses > 0 ? Math.round((state.totalCorrect / state.totalGuesses) * 100) : 0
-  const diff = elapsed !== null ? Math.abs(elapsed - target) : null
-  const correct = diff !== null && diff <= TOLERANCE_SEC
+  const diff = elapsed !== null ? elapsed - target : null
+  const result = diff !== null ? (Math.abs(diff) <= TOLERANCE_SEC ? 'right' : 'wrong') : null
+
+  const stats = [
+    { key: 'streak', label: t('hud.streak'), value: state.streak },
+    { key: 'acc', label: t('hud.accuracy'), value: `${accuracy}%` },
+  ]
+
+  const zone = {
+    id: 'go',
+    tone: phase === 'waiting' ? 'time-live' : 'time',
+    glyph:
+      phase === 'ready' ? (
+        <svg className="zone-disc" viewBox="0 0 100 100"><path d="M34 22v56l46-28Z" fill="currentColor" /></svg>
+      ) : phase === 'waiting' ? (
+        <span className="time-pulse" />
+      ) : (
+        <span className="zone-big-text">{`${diff > 0 ? '+' : ''}${diff.toFixed(2)}s`}</span>
+      ),
+    label: phase === 'ready' ? t('timetrain.start') : phase === 'waiting' ? t('timetrain.tapNow') : null,
+  }
 
   return (
-    <div className="cardtrain-page">
-      <div className="train-hud">
-        <Link to="/time" className="back-link">{t('back.menu')}</Link>
-        <div className="hud-stats">
-          <span>
-            {t('train.streak')} <motion.strong key={state.streak} initial={{ scale: 1.5 }} animate={{ scale: 1 }}>{state.streak}</motion.strong>
-          </span>
-          <span>{t('train.accuracy')} <strong>{accuracy}%</strong></span>
-        </div>
+    <TrainShell
+      backTo="/time"
+      stats={stats}
+      zones={
+        <TapZones
+          layout="single"
+          zones={[zone]}
+          onPick={onZone}
+          locked={locked}
+          feedback={result ? { picked: 'go', result } : null}
+        />
+      }
+    >
+      <div className={`time-readout${result ? ` result-${result}` : ''}`}>
+        <span className="time-readout-label">{t('timetrain.target')}</span>
+        <span className="time-readout-value">{target}<small>s</small></span>
+        <span className="time-readout-sub">
+          {phase === 'revealed' ? `${t('timetrain.yours')} ${elapsed.toFixed(2)}s` : ' '}
+        </span>
       </div>
-
-      {phase !== 'revealed' && (
-        <p className="card-prompt">{t('timetrain.target')} <strong>{target}s</strong></p>
-      )}
-
-      <div className="time-stage">
-        {phase === 'ready' && (
-          <motion.button className="time-dot ready" onClick={start} whileTap={{ scale: 0.92 }}>
-            {t('timetrain.start')}
-          </motion.button>
-        )}
-        {phase === 'waiting' && (
-          <motion.button
-            className="time-dot waiting"
-            onClick={stop}
-            animate={{ scale: [1, 1.12, 1] }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            {t('timetrain.tapNow')}
-          </motion.button>
-        )}
-        {phase === 'revealed' && (
-          <div className={`time-result ${correct ? 'correct' : 'incorrect'}`}>
-            <p className="feedback">{correct ? t('timetrain.correct') : t('timetrain.incorrect')}</p>
-            <p className="time-result-line">{t('timetrain.target')} <strong>{target}s</strong></p>
-            <p className="time-result-line">{t('timetrain.yours')} <strong>{elapsed.toFixed(2)}s</strong></p>
-            <p className="time-result-line">{t('timetrain.off')} <strong>{diff.toFixed(2)}s</strong></p>
-          </div>
-        )}
-      </div>
-
-      <QuoteBanner quote={quote} />
-      {quote && phase === 'revealed' && (
-        <button className="tap-continue-btn" onClick={drawNext}>{t('tap.continue')}</button>
-      )}
-    </div>
+    </TrainShell>
   )
 }

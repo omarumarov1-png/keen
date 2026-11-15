@@ -1,0 +1,324 @@
+/* ===== Playing card: midnight-and-gold back, ivory face, lift + sheen flip ===== */
+/* ===== Playing card: midnight-and-gold back, ivory face, lift + sheen flip ===== */
+.flip-scene {
+  --card-gold: #d8b25a;
+  --card-gold-deep: #9c7426;
+  --card-ink: #12162b;
+  --card-ivory: #fffaf0;
+  position: relative;
+  width: 160px;
+  height: 224px;
+  perspective: 1400px;
+  border-radius: 16px;
+}
+
+.flip-scene-large {
+  width: 190px;
+  height: 266px;
+}
+
+/* Training-stage size: scales with the space left above the answer zones. */
+.flip-scene-stage {
+  --card-h: clamp(170px, 30dvh, 320px);
+  height: var(--card-h);
+  width: calc(var(--card-h) * 0.714);
+  border-radius: calc(var(--card-h) * 0.072);
+}
+
+.flip-scene-stage .flip-face,
+.flip-scene-stage .playing-card-face {
+  border-radius: calc(var(--card-h) * 0.072);
+}
+
+.flip-lift,
+.flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.flip-inner {
+  transform-style: preserve-3d;
+}
+
+.flip-shadow {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -18px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(10, 12, 30, 0.45), transparent);
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 16px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 14px 30px rgba(9, 12, 30, 0.28),
+    0 3px 8px rgba(9, 12, 30, 0.18);
+  overflow: hidden;
+}
+
+/* --- back --- */
+.flip-face-back {
+  padding: 7px;
+  box-sizing: border-box;
+  background: linear-gradient(145deg, #f3e3b4, var(--card-gold) 40%, var(--card-gold-deep));
+}
+
+.card-back-pattern {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  color: var(--card-gold);
+  background-color: var(--card-ink);
+  background-image:
+    radial-gradient(120% 80% at 50% 0%, rgba(80, 100, 220, 0.35), transparent 60%),
+    radial-gradient(90% 70% at 50% 110%, rgba(216, 178, 90, 0.22), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(216, 178, 90, 0.16) 0 1px, transparent 1px 11px),
+    repeating-linear-gradient(-45deg, rgba(216, 178, 90, 0.16) 0 1px, transparent 1px 11px);
+  overflow: hidden;
+}
+
+.card-back-frame {
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(216, 178, 90, 0.6);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 3px rgba(18, 22, 43, 0.9), inset 0 0 0 4px rgba(216, 178, 90, 0.35);
+}
+
+.card-back-medallion {
+  width: 70%;
+  height: auto;
+  filter: drop-shadow(0 0 10px rgba(216, 178, 90, 0.35));
+}
+
+.card-back-monogram {
+  font: 700 26px/1 var(--serif);
+  fill: currentColor;
+  letter-spacing: 0.02em;
+}
+
+.card-back-sheen {
+  position: absolute;
+  inset: -40% -60%;
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 240, 200, 0.22) 50%, transparent 58%);
+  animation: card-sheen 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes card-sheen {
+  0%, 55% { transform: translateX(-45%); }
+  100% { transform: translateX(45%); }
+}
+
+/* --- face --- */
+.flip-face-front {
+  transform: rotateY(180deg);
+  box-sizing: border-box;
+}
+
+.playing-card-face {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.playing-card-face.white,
+.playing-card-face.suit-red,
+.playing-card-face.suit-black {
+  background:
+    radial-gradient(120% 90% at 30% 0%, #ffffff, transparent 60%),
+    linear-gradient(160deg, var(--card-ivory), #f4ead6);
+  color: #15151d;
+  border: 1px solid rgba(156, 116, 38, 0.35);
+}
+
+.playing-card-face.suit-red {
+  color: #c8242f;
+}
+
+.playing-card-face.black {
+  background:
+    radial-gradient(120% 90% at 30% 0%, #3a3d4a, transparent 60%),
+    linear-gradient(160deg, #23252e, #0e0f14);
+  color: #f2f0ea;
+  border: 1px solid rgba(216, 178, 90, 0.45);
+}
+
+.card-inner-frame {
+  position: absolute;
+  inset: 9px;
+  border-radius: 10px;
+  border: 1px solid currentColor;
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+.playing-card-face.black .card-inner-frame {
+  border-color: var(--card-gold);
+  opacity: 0.4;
+}
+
+.card-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  gap: 2px;
+}
+
+.card-corner b {
+  font: 700 1.2rem/1 var(--serif);
+}
+
+.card-corner-pip {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.flip-scene-stage .card-corner b {
+  font-size: calc(var(--card-h) * 0.085);
+}
+
+.flip-scene-stage .card-corner-pip {
+  width: calc(var(--card-h) * 0.068);
+  height: calc(var(--card-h) * 0.068);
+}
+
+.card-corner-tl {
+  top: 13px;
+  left: 14px;
+}
+
+.card-corner-br {
+  bottom: 13px;
+  right: 14px;
+  transform: rotate(180deg);
+}
+
+.card-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.card-center-symbol {
+  width: 3.6rem;
+  height: 3.6rem;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.18));
+}
+
+.flip-scene-large .card-center-symbol {
+  width: 4.3rem;
+  height: 4.3rem;
+}
+
+.flip-scene-stage .card-center-symbol {
+  width: calc(var(--card-h) * 0.3);
+  height: calc(var(--card-h) * 0.3);
+}
+
+.flip-scene-stage .card-crown {
+  width: calc(var(--card-h) * 0.17);
+}
+
+.playing-card-face.suit-red .card-center-symbol {
+  filter: drop-shadow(0 4px 12px rgba(196, 38, 46, 0.35));
+}
+
+.playing-card-face.black .card-center-symbol {
+  filter: drop-shadow(0 0 14px rgba(216, 178, 90, 0.35));
+}
+
+.card-crown {
+  width: 38px;
+  height: auto;
+  color: var(--card-gold-deep);
+}
+
+.playing-card-face.black .card-crown {
+  color: var(--card-gold);
+}
+
+.card-face-name,
+.card-joker-word {
+  font: 600 0.62rem/1 var(--serif);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+.card-center-joker .card-center-symbol {
+  color: var(--card-gold-deep);
+}
+
+.playing-card-face.black .card-center-joker .card-center-symbol {
+  color: var(--card-gold);
+}
+
+.card-face-sheen {
+  position: absolute;
+  inset: -30% -70%;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60%);
+  transform: translateX(-60%);
+  animation: face-sheen 0.9s ease-out 0.35s 1 forwards;
+  pointer-events: none;
+}
+
+@keyframes face-sheen {
+  to { transform: translateX(60%); }
+}
+
+/* --- result glow --- */
+.flip-scene::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+.flip-scene.result-right::after {
+  box-shadow: 0 0 0 3px var(--right), 0 0 34px 6px color-mix(in srgb, var(--right) 45%, transparent);
+  animation: glow-pulse 0.9s ease-out 0.3s 1 both;
+}
+
+.flip-scene.result-wrong::after {
+  box-shadow: 0 0 0 3px var(--wrong), 0 0 34px 6px color-mix(in srgb, var(--wrong) 45%, transparent);
+  animation: glow-pulse 0.9s ease-out 0.3s 1 both;
+}
+
+@keyframes glow-pulse {
+  0% { opacity: 0; transform: scale(0.96); }
+  35% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 0.75; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-back-sheen,
+  .card-face-sheen { display: none; }
+  .flip-scene.result-right::after,
+  .flip-scene.result-wrong::after { animation: none; opacity: 0.75; }
+}

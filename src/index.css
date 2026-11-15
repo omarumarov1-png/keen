@@ -1,37 +1,134 @@
+/* ===== Keen design tokens =====
+   Dark is the primary look (night/in-car friendly); light follows the OS.
+   Display: Unbounded (wide geometric, Latin + Cyrillic).
+   UI:      Manrope (highly legible, Latin + Cyrillic).
+   Cards:   Playfair Display for card indices. */
 :root {
-  --text: #333;
-  --text-h: #111;
-  --bg: #fff;
-  --bg-gradient: radial-gradient(1200px 800px at 50% -10%, #eef2ff 0%, #fafafa 45%, #ffffff 100%);
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --display: 'Unbounded', 'Manrope', system-ui, sans-serif;
+  --sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
 
-  font: 16px/1.5 var(--sans);
-  color-scheme: light dark;
+  --bg: #090b10;
+  --bg-glow: radial-gradient(900px 560px at 85% -12%, rgba(232, 176, 75, 0.13), transparent 60%),
+    radial-gradient(800px 600px at -10% 10%, rgba(92, 110, 220, 0.12), transparent 60%);
+  --surface: #12151e;
+  --surface-2: #181c28;
+  --surface-3: #212637;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.14);
+  --text: #eef0f5;
+  --text-2: #a6adbd;
+  --text-3: #6d7487;
+  --gold: #e8b04b;
+  --gold-hi: #f6dc9a;
+  --gold-ink: #1b1305;
+  --right: #2fd483;
+  --wrong: #ff5a4e;
+  --red-suit: #ff5f66;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 30px -12px rgba(0, 0, 0, 0.6);
+
+  --h-cards: #e8b04b;
+  --h-chess: #8db6ff;
+  --h-numbers: #b69bff;
+  --h-business: #3ddc97;
+  --h-time: #ff9a6b;
+  --h-confidence: #ff7db8;
+
+  --zone-black-a: #1c1f29;
+  --zone-black-b: #040507;
+  --zone-black-ink: #f2eee5;
+  --zone-white-a: #f4f0e7;
+  --zone-white-b: #d3ccbc;
+  --zone-white-ink: #0b0c10;
+
+  --r-lg: 24px;
+  --r-md: 18px;
+  --r-sm: 12px;
+
+  font: 500 16px/1.5 var(--sans);
+  color-scheme: dark;
   color: var(--text);
   background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --text: #d1d5db;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --bg-gradient: radial-gradient(1200px 800px at 50% -10%, #1e2440 0%, #16171d 45%, #101116 100%);
+    --bg: #f3f0e9;
+    --bg-glow: radial-gradient(900px 560px at 85% -12%, rgba(214, 160, 60, 0.18), transparent 60%),
+      radial-gradient(800px 600px at -10% 10%, rgba(92, 110, 220, 0.08), transparent 60%);
+    --surface: #ffffff;
+    --surface-2: #faf8f3;
+    --surface-3: #efebe2;
+    --line: rgba(20, 22, 30, 0.08);
+    --line-strong: rgba(20, 22, 30, 0.16);
+    --text: #14161d;
+    --text-2: #4c5263;
+    --text-3: #868b98;
+    --gold: #a8741b;
+    --gold-hi: #e2b04f;
+    --right: #13a35c;
+    --wrong: #e0382c;
+    --red-suit: #d3283a;
+    --shadow: 0 1px 2px rgba(20, 22, 30, 0.05), 0 14px 30px -16px rgba(20, 22, 30, 0.25);
+
+    --h-cards: #a8741b;
+    --h-chess: #2f64c8;
+    --h-numbers: #6a4bd6;
+    --h-business: #0f8f66;
+    --h-time: #cc5526;
+    --h-confidence: #c23a7c;
+
+    --zone-black-a: #2a2d38;
+    --zone-black-b: #0d0e13;
+    --zone-white-a: #ffffff;
+    --zone-white-b: #ece7dc;
+
+    color-scheme: light;
   }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  background: var(--bg-gradient);
+  min-height: 100dvh;
+  background: var(--bg-glow), var(--bg);
   background-attachment: fixed;
-  min-height: 100svh;
+  overflow-x: hidden;
 }
 
 #root {
-  min-height: 100svh;
+  min-height: 100dvh;
 }
 
-h1 {
-  color: var(--text-h);
-  font-weight: 700;
+h1,
+h2 {
+  margin: 0;
+  color: var(--text);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
 }

@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { loadBusinessState } from '../lib/businessProgress.js'
 import { useLang } from '../lib/i18n.jsx'
+import { BusinessEmblem } from '../components/Emblems.jsx'
+import ModeHeader, { StatRow } from '../components/ModeHeader.jsx'
 
 export default function BusinessHome() {
   const { t } = useLang()
@@ -9,22 +11,9 @@ export default function BusinessHome() {
 
   return (
     <div className="home-page">
-      <Link to="/" className="back-link">{t('back.keen')}</Link>
-      <h1>{t('business.title')}</h1>
-      <p className="tagline">{t('business.tagline')}</p>
-
-      <div className="stats-grid">
-        <div className="stat-card">
-          <span className="stat-value">{state.bestStreak}</span>
-          <span className="stat-label">{t('stat.bestStreak')}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-value">{accuracy}%</span>
-          <span className="stat-label">{t('stat.accuracy')}</span>
-        </div>
-      </div>
-
-      <Link to="/business/train" className="start-button">{t('biztrain.prompt')}</Link>
+      <ModeHeader hue="business" Emblem={BusinessEmblem} title={t('business.title')} tagline={t('business.tagline')} />
+      <StatRow items={[{ label: t('stat.bestStreak'), value: state.bestStreak }, { label: t('stat.accuracy'), value: `${accuracy}%` }]} />
+      <Link to="/business/train" className="start-button hue-business">{t('cta.play')}</Link>
     </div>
   )
 }

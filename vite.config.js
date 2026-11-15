@@ -16,12 +16,12 @@ export default defineConfig({
       manifest: {
         name: 'Keen',
         short_name: 'Keen',
-        description: 'Sharpen instinct over calculation -- chess puzzle intuition training and classic black/white card-guessing exercises',
+        description: 'Intuition training: eyes-free card guessing with haptic answers, plus chess, numbers, time, business and confidence modes',
         start_url: '/keen/',
         scope: '/keen/',
         display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#111111',
+        background_color: '#090b10',
+        theme_color: '#090b10',
         icons: [
           { src: 'logo.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
           { src: 'logo.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
@@ -33,6 +33,24 @@ export default defineConfig({
         // first load, not just after the user happens to revisit it.
         globPatterns: ['**/*.{js,css,html,svg,json}'],
         maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
+        // Google Fonts (Unbounded / Manrope / Playfair Display): cache after
+        // first load so the typography also works offline.
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com',
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'google-fonts-css' },
+          },
+          {
+            urlPattern: ({ url }) => url.origin === 'https://fonts.gstatic.com',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-files',
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],

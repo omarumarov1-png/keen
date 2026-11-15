@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { loadState, setExposureSeconds, setColorFilter } from '../lib/progress.js'
 import { useLang } from '../lib/i18n.jsx'
+import { ChessEmblem } from '../components/Emblems.jsx'
+import ModeHeader, { StatRow } from '../components/ModeHeader.jsx'
 
 const MODES = [
-  { id: 'w', icon: '♔', labelKey: 'chess.mode.white.label', descKey: 'chess.mode.white.desc' },
-  { id: 'b', icon: '♚', labelKey: 'chess.mode.black.label', descKey: 'chess.mode.black.desc' },
-  { id: 'both', icon: '♟', labelKey: 'chess.mode.mixed.label', descKey: 'chess.mode.mixed.desc' },
+  { id: 'w', icon: 'w', labelKey: 'chess.mode.white.label', descKey: 'chess.mode.white.desc' },
+  { id: 'b', icon: 'b', labelKey: 'chess.mode.black.label', descKey: 'chess.mode.black.desc' },
+  { id: 'both', icon: 'both', labelKey: 'chess.mode.mixed.label', descKey: 'chess.mode.mixed.desc' },
 ]
 
 export default function Home() {
@@ -28,42 +30,33 @@ export default function Home() {
 
   return (
     <div className="home-page">
-      <Link to="/" className="back-link">{t('back.keen')}</Link>
-      <h1>{t('chess.title')}</h1>
-      <p className="tagline">{t('chess.tagline')}</p>
+      <ModeHeader hue="chess" Emblem={ChessEmblem} title={t('chess.title')} tagline={t('chess.tagline')} />
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <span className="stat-value">{state.rating}</span>
-          <span className="stat-label">{t('stat.rating')}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-value">{state.bestStreak}</span>
-          <span className="stat-label">{t('stat.bestStreak')}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-value">{accuracy}%</span>
-          <span className="stat-label">{t('stat.accuracy')}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-value">{state.totalAttempts}</span>
-          <span className="stat-label">{t('stat.puzzlesSeen')}</span>
-        </div>
-      </div>
+      <StatRow
+        items={[
+          { label: t('stat.rating'), value: state.rating },
+          { label: t('stat.bestStreak'), value: state.bestStreak },
+          { label: t('stat.accuracy'), value: `${accuracy}%` },
+          { label: t('stat.puzzlesSeen'), value: state.totalAttempts },
+        ]}
+      />
 
-      <div className="mode-cards">
+      <div className="choice-list hue-chess">
         {MODES.map((m) => (
-          <button key={m.id} className="mode-card" onClick={() => startMode(m.id)}>
-            <span className="mode-icon">{m.icon}</span>
-            <span className="mode-label">{t(m.labelKey)}</span>
-            <span className="mode-desc">{t(m.descKey)}</span>
+          <button key={m.id} className="choice-tile" onClick={() => startMode(m.id)}>
+            <span className={`side-swatch side-${m.icon}`} aria-hidden="true" />
+            <span className="choice-body">
+              <span className="tile-label">{t(m.labelKey)}</span>
+              <span className="tile-desc">{t(m.descKey)}</span>
+            </span>
+            <span className="tile-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" /></svg></span>
           </button>
         ))}
       </div>
 
-      <div className="settings">
+      <div className="settings-card">
         <label htmlFor="exposure">
-          {t('chess.exposure')} <strong>{state.exposureSeconds}s</strong>
+          <span>{t('chess.exposure')}</span> <strong>{state.exposureSeconds}s</strong>
         </label>
         <input
           id="exposure"

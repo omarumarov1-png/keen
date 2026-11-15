@@ -1,6 +1,11 @@
 import { Link } from 'react-router-dom'
 import { loadConfidenceState } from '../lib/confidenceProgress.js'
 import { useLang } from '../lib/i18n.jsx'
+import { ConfidenceEmblem } from '../components/Emblems.jsx'
+import ModeHeader, { StatRow } from '../components/ModeHeader.jsx'
+import ZoneMap from '../components/ZoneMap.jsx'
+import EyesFreeNote from '../components/EyesFreeNote.jsx'
+import { bwZones, stakeZones } from '../lib/eyesFree.jsx'
 
 export default function ConfidenceHome() {
   const { t } = useLang()
@@ -9,22 +14,18 @@ export default function ConfidenceHome() {
 
   return (
     <div className="home-page">
-      <Link to="/" className="back-link">{t('back.keen')}</Link>
-      <h1>{t('confidence.title')}</h1>
-      <p className="tagline">{t('confidence.tagline')}</p>
-
-      <div className="stats-grid">
-        <div className="stat-card">
-          <span className="stat-value">{state.score}</span>
-          <span className="stat-label">{t('confidence.score')}</span>
+      <ModeHeader hue="confidence" Emblem={ConfidenceEmblem} title={t('confidence.title')} tagline={t('confidence.tagline')} />
+      <StatRow items={[{ label: t('confidence.score'), value: state.score }, { label: t('stat.accuracy'), value: `${accuracy}%` }]} />
+      <Link to="/confidence/train" className="start-button hue-confidence">{t('cta.play')}</Link>
+      <div className="zone-explain hue-confidence">
+        <div className="zone-pair">
+          <ZoneMap layout="thirds" zones={stakeZones(t).map((z) => ({ ...z, glyph: `×${z.id}` }))} caption="1" />
+          <span className="zone-pair-arrow" aria-hidden="true">→</span>
+          <ZoneMap layout="halves" zones={bwZones(t)} caption="2" />
         </div>
-        <div className="stat-card">
-          <span className="stat-value">{accuracy}%</span>
-          <span className="stat-label">{t('stat.accuracy')}</span>
-        </div>
+        <p>{t('zones.confidence')}</p>
       </div>
-
-      <Link to="/confidence/train" className="start-button">{t('timetrain.start')}</Link>
+      <EyesFreeNote />
     </div>
   )
 }
