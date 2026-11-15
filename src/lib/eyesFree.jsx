@@ -4,8 +4,9 @@ import Disc from '../components/Disc.jsx'
 // Shared rhythm + zone definitions for the eyes-free training screens.
 
 // How long a revealed answer stays on screen before the next round deals
-// itself (the flip takes ~0.3s, so the face is readable for ~1s).
-export const REVEAL_MS = 1250
+// itself (the flip takes ~0.3s, so the face is readable for ~0.65s).
+// 950ms + the 280ms lock below = a round about every 1.2s.
+export const REVEAL_MS = 950
 // Input stays closed this long after the next card is dealt, while the card
 // swings back face-down -- so a tap meant for the previous round can't land
 // on the new one.
