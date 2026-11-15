@@ -1,5 +1,12 @@
 import { useState } from 'react'
-import { hapticSuccess, hapticError, hapticSupport, PATTERNS } from '../lib/haptics.js'
+import { hapticSuccess, hapticError, hapticSupport, hapticProbe, PATTERNS } from '../lib/haptics.js'
+
+// Spacing probes: 3 ticks each, at three different gaps
+const PROBES = [
+  { id: 'p100', gap: 100 },
+  { id: 'p250', gap: 250 },
+  { id: 'p400', gap: 400 },
+]
 import { getSoundOn, setSoundOn, playCue } from '../lib/sound.js'
 import { useLang } from '../lib/i18n.jsx'
 import ModeHeader from '../components/ModeHeader.jsx'
@@ -87,7 +94,7 @@ export default function HapticsTest() {
             <span className="hl hl-right"><i /><i /></span>
             {support.kind === 'vibrate'
               ? t('ht.legend.android', { p: and.success.join('/') })
-              : t('ht.legend.ios', { n: ios.success.ticks, gap: ios.success.gapMs })}
+              : t('ht.legend.iosOne')}
             <b data-testid="ht-count-right">{count.right ? `×${count.right}` : ''}</b>
           </span>
           <span>
@@ -99,6 +106,20 @@ export default function HapticsTest() {
           </span>
         </div>
       </div>
+
+      <section className="ht-probe" data-testid="ht-probe">
+        <h2>{t('ht.probe.title')}</h2>
+        <p>{t('ht.probe.body')}</p>
+        <TapZones
+          layout="thirds"
+          size="panel"
+          zones={PROBES.map((p) => ({ id: p.id, tone: 'neutral', glyph: <b className="ht-probe-gap">{(p.gap / 1000).toFixed(2).replace(/0$/, '')}s</b>, label: t('ht.probe.pad', { gap: p.gap }) }))}
+          onPick={(id) => {
+            const p = PROBES.find((x) => x.id === id)
+            hapticProbe(3, p.gap)
+          }}
+        />
+      </section>
 
       <section className="ht-tips">
         <h2>{t('ht.tips.title')}</h2>

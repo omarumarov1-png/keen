@@ -1932,3 +1932,20 @@
   accent-color: var(--gold);
   margin: 0;
 }
+
+/* tick-spacing check on the Vibration test page */
+.ht-probe {
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+}
+.ht-probe h2 { font: 600 14px/1.3 var(--display); }
+.ht-probe p { margin: 0; font: 500 13.5px/1.5 var(--sans); color: var(--text-2); }
+.zone-neutral {
+  color: var(--gold);
+  background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--gold) 14%, var(--surface-3)), var(--surface) 85%);
+}
+.ht-probe-gap { font: 700 22px/1 var(--display); }

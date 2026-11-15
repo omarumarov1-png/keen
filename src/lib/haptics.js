@@ -2,7 +2,7 @@ import { playCue } from './sound.js'
 
 // Strong, unmistakable haptics, built so they can be told apart without
 // looking at the screen (e.g. training while driving):
-//   success: two crisp pulses ("da-dum")
+//   success: ONE short, firm pulse/tick
 //   error:   a long, heavy buzz -- much longer AND a different rhythm
 //   tap:     one tick, only for "input registered" (stake pick, time start)
 //
@@ -26,14 +26,21 @@ import { playCue } from './sound.js'
 //      first tick is also played programmatically, synchronously.
 export const PATTERNS = {
   android: {
-    success: [70, 60, 70],
+    success: [80],
     error: [280, 110, 280],
     tap: [14],
   },
-  // ticks = total ticks felt, including the native one from the tap itself
+  // ticks = total ticks felt, including the native one from the tap itself.
+  // On a real iPhone 13 the earlier fast patterns (85 ms / 50 ms gaps) felt the
+  // same as a single tick -- iOS merges switch ticks that land too close
+  // together. So the two answers now differ by RHYTHM, spaced far enough
+  // apart to stay separate and still finish well inside the ~1 s window
+  // in which WebKit treats the timers as part of the tap:
+  //   right = ONE clean tick (the tap's own native tick)
+  //   wrong = FOUR slow ticks, "ta-ta-ta-ta", ~190 ms apart (~570 ms total)
   ios: {
-    success: { ticks: 2, gapMs: 85 },
-    error: { ticks: 6, gapMs: 50 },
+    success: { ticks: 1, gapMs: 0 },
+    error: { ticks: 4, gapMs: 190 },
     tap: { ticks: 1, gapMs: 0 },
   },
 }
@@ -153,4 +160,22 @@ export function hapticError(opts) {
 
 export function hapticTap(opts) {
   play('tap', opts)
+}
+
+// Diagnostic for the Vibration test page: `ticks` ticks `gapMs` apart, the
+// first one native when the probe was tapped through a switch zone. Lets the
+// player report which spacing their phone keeps separate.
+export function hapticProbe(ticks, gapMs) {
+  cancelPending()
+  const native = performance.now() - nativeTickAt < NATIVE_WINDOW_MS
+  nativeTickAt = -Infinity
+  if (canVibrate()) {
+    const pattern = []
+    for (let i = 0; i < ticks; i++) pattern.push(40, i < ticks - 1 ? gapMs : 0)
+    try { navigator.vibrate(pattern.slice(0, -1)) } catch { /* unsupported */ }
+    return
+  }
+  if (!isIOS()) return
+  if (!native) iosTick()
+  for (let i = 1; i < ticks; i++) pending.push(setTimeout(iosTick, i * gapMs))
 }
