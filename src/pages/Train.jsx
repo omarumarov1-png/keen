@@ -5,6 +5,8 @@ import { loadState, recordAttempt } from '../lib/progress.js'
 import { hapticSuccess, hapticError } from '../lib/haptics.js'
 import { useLang } from '../lib/i18n.jsx'
 import TrainShell from '../components/TrainShell.jsx'
+import TrainHud from '../components/TrainHud.jsx'
+import { newSessionId, currentSession, CHESS_FALLBACK_CHANCE } from '../lib/stats.js'
 
 const RECENT_WINDOW = 40
 const FEEDBACK_DELAY_MS = 1300
@@ -13,6 +15,9 @@ export default function Train() {
   const { t } = useLang()
   const [puzzles, setPuzzles] = useState(null)
   const [state, setState] = useState(() => loadState())
+  const [sessionId] = useState(newSessionId)
+  // read from the (memoised-once) timer callback too, so keep it in a ref
+  const sessionRef = useRef(sessionId)
   const [current, setCurrent] = useState(null)
   const [selected, setSelected] = useState(null)
   const [legalTargets, setLegalTargets] = useState([])
@@ -89,9 +94,17 @@ export default function Train() {
     clearInterval(timerRef.current)
     const correct = attemptedUci === puzzle.solution
     setPhase(attemptedUci === null ? 'timeout' : correct ? 'correct' : 'incorrect')
-    if (correct) hapticSuccess()
-    else hapticError()
-    const next = recordAttempt(st, puzzle, correct)
+    // a timeout isn't a tap: Android still buzzes, iOS/sound need a gesture
+    const gesture = attemptedUci !== null
+    if (correct) hapticSuccess({ gesture })
+    else hapticError({ gesture })
+    // chance of finding the move by guessing = 1 / number of legal moves
+    let chance = null
+    try {
+      const legal = puzzle.chess.moves().length
+      if (legal > 0) chance = 1 / legal
+    } catch { /* keep null */ }
+    const next = recordAttempt(st, puzzle, correct, sessionRef.current, chance)
     setState(next)
     advanceRef.current = setTimeout(() => {
       startPuzzle(puzzlesRef.current, next)
@@ -149,15 +162,23 @@ export default function Train() {
 
   if (!current) return <div className="train-shell"><p className="stage-question">{t('train.loading')}</p></div>
 
-  const accuracy = state.totalAttempts > 0 ? Math.round((state.totalCorrect / state.totalAttempts) * 100) : 0
-  const stats = [
-    { key: 'rating', label: t('hud.rating'), value: state.rating },
-    { key: 'streak', label: t('hud.streak'), value: state.streak },
-    { key: 'acc', label: t('hud.accuracy'), value: `${accuracy}%` },
-  ]
+  const session = currentSession(state, sessionId)
+  const chance = session.n && session.p ? session.p / session.n
+    : state.chanceN ? state.chanceSum / state.chanceN : CHESS_FALLBACK_CHANCE
+  const hud = (
+    <TrainHud
+      session={session}
+      total={state.totalAttempts}
+      chance={chance}
+      streak={state.streak}
+      best={state.bestStreak}
+      recent={state.recent}
+      extra={{ label: t('hud.rating'), value: state.rating }}
+    />
+  )
 
   return (
-    <TrainShell backTo="/chess" stats={stats} className="chess-shell">
+    <TrainShell backTo="/chess" hud={hud} className="chess-shell">
       <div className="chess-col">
         <div className={`timer-bar-track ${phase !== 'showing' ? 'paused' : ''}`}>
           <div

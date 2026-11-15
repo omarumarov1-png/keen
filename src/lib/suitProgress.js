@@ -1,3 +1,5 @@
+import { normalizeStats, trackResult } from './stats.js'
+
 const KEY = 'chess-intuition-suits-progress-v1'
 
 function defaultState() {
@@ -6,6 +8,8 @@ function defaultState() {
     bestStreak: 0,
     totalGuesses: 0,
     totalCorrect: 0,
+    recent: [], // last 20 results (see stats.js)
+    sessions: [], // last 30 sessions
   }
 }
 
@@ -13,7 +17,7 @@ export function loadSuitState() {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return defaultState()
-    return { ...defaultState(), ...JSON.parse(raw) }
+    return normalizeStats({ ...defaultState(), ...JSON.parse(raw) })
   } catch {
     return defaultState()
   }
@@ -27,13 +31,14 @@ function save(state) {
   }
 }
 
-export function recordSuitGuess(state, correct) {
+export function recordSuitGuess(state, correct, sessionId = 0) {
   const next = {
     ...state,
     streak: correct ? state.streak + 1 : 0,
     bestStreak: correct ? Math.max(state.bestStreak, state.streak + 1) : state.bestStreak,
     totalGuesses: state.totalGuesses + 1,
     totalCorrect: state.totalCorrect + (correct ? 1 : 0),
+    ...trackResult(state, correct, sessionId, {}),
   }
   save(next)
   return next

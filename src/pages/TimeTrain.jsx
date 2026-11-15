@@ -4,6 +4,8 @@ import { hapticSuccess, hapticError, hapticTap } from '../lib/haptics.js'
 import { useLang } from '../lib/i18n.jsx'
 import TrainShell from '../components/TrainShell.jsx'
 import TapZones from '../components/TapZones.jsx'
+import TrainHud from '../components/TrainHud.jsx'
+import { newSessionId, currentSession } from '../lib/stats.js'
 import { READY_LOCK_MS } from '../lib/eyesFree.jsx'
 
 const TARGETS = [3, 4, 5, 6, 7, 8]
@@ -17,6 +19,7 @@ function randomTarget() {
 export default function TimeTrain() {
   const { t } = useLang()
   const [state, setState] = useState(() => loadTimeState())
+  const [sessionId] = useState(newSessionId)
   // target/phase/elapsed in one atomic state object
   const [play, setPlay] = useState(() => ({ target: randomTarget(), phase: 'ready', elapsed: null }))
   const { target, phase, elapsed } = play
@@ -65,18 +68,33 @@ export default function TimeTrain() {
     if (correct) hapticSuccess()
     else hapticError()
     setPlay((p) => ({ ...p, phase: 'revealed', elapsed: secs }))
-    setState(recordTimeGuess(state, correct))
+    setState(recordTimeGuess(state, correct, sessionId, Math.abs(secs - target)))
     advanceRef.current = setTimeout(drawNext, ADVANCE_DELAY_MS)
   }
 
-  const accuracy = state.totalGuesses > 0 ? Math.round((state.totalCorrect / state.totalGuesses) * 100) : 0
   const diff = elapsed !== null ? elapsed - target : null
   const result = diff !== null ? (Math.abs(diff) <= TOLERANCE_SEC ? 'right' : 'wrong') : null
 
-  const stats = [
-    { key: 'streak', label: t('hud.streak'), value: state.streak },
-    { key: 'acc', label: t('hud.accuracy'), value: `${accuracy}%` },
-  ]
+  // Time has no "chance" level: the ring is the hit rate (within the
+  // tolerance) and the middle column is the average miss in seconds.
+  const session = currentSession(state, sessionId)
+  const avgErr = session.n && session.e !== undefined ? session.e / session.n : null
+  const hud = (
+    <TrainHud
+      session={session}
+      total={state.totalGuesses}
+      chance={null}
+      streak={state.streak}
+      best={state.bestStreak}
+      recent={state.recent}
+      metric={{
+        label: t('hud.avgOff'),
+        value: avgErr === null ? '—' : `±${avgErr.toFixed(2)}s`,
+        sub: t('hud.hitWindow', { tol: TOLERANCE_SEC }),
+        tone: null,
+      }}
+    />
+  )
 
   const zone = {
     id: 'go',
@@ -95,7 +113,7 @@ export default function TimeTrain() {
   return (
     <TrainShell
       backTo="/time"
-      stats={stats}
+      hud={hud}
       zones={
         <TapZones
           layout="single"

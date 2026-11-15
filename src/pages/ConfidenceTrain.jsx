@@ -6,11 +6,14 @@ import { useLang } from '../lib/i18n.jsx'
 import PlayingCard from '../components/PlayingCard.jsx'
 import TrainShell from '../components/TrainShell.jsx'
 import TapZones from '../components/TapZones.jsx'
+import TrainHud from '../components/TrainHud.jsx'
+import { newSessionId, currentSession, CHANCE } from '../lib/stats.js'
 import { bwZones, stakeZones, REVEAL_MS, READY_LOCK_MS } from '../lib/eyesFree.jsx'
 
 export default function ConfidenceTrain() {
   const { t } = useLang()
   const [state, setState] = useState(() => loadConfidenceState())
+  const [sessionId] = useState(newSessionId)
   // See CardTrain.jsx for why current/stake/phase/lastGuess are bundled
   // into one state object instead of separate useState calls: a real leak
   // was caught on-device where the next round's card briefly rendered
@@ -76,20 +79,26 @@ export default function ConfidenceTrain() {
     if (correct) hapticSuccess()
     else hapticError()
     setRound((r) => ({ ...r, phase: 'revealed', lastGuess: color }))
-    setState(recordConfidenceGuess(state, correct, stake))
+    setState(recordConfidenceGuess(state, correct, stake, sessionId))
     advanceRef.current = setTimeout(drawNext, REVEAL_MS)
   }
 
   if (!current) return <div className="train-shell" />
 
-  const accuracy = state.totalGuesses > 0 ? Math.round((state.totalCorrect / state.totalGuesses) * 100) : 0
   const revealed = phase === 'revealed'
   const result = revealed ? (lastGuess === current.color ? 'right' : 'wrong') : null
 
-  const stats = [
-    { key: 'score', label: t('confidence.score'), value: state.score },
-    { key: 'acc', label: t('hud.accuracy'), value: `${accuracy}%` },
-  ]
+  const hud = (
+    <TrainHud
+      session={currentSession(state, sessionId)}
+      total={state.totalGuesses}
+      chance={CHANCE.confidence}
+      streak={state.streak}
+      best={state.bestStreak}
+      recent={state.recent}
+      extra={{ label: t('confidence.score'), value: state.score }}
+    />
+  )
 
   const zones =
     phase === 'staking' ? (
@@ -106,7 +115,7 @@ export default function ConfidenceTrain() {
     )
 
   return (
-    <TrainShell backTo="/confidence" stats={stats} zones={zones}>
+    <TrainShell backTo="/confidence" hud={hud} zones={zones}>
       <div className="stake-stage">
         <PlayingCard revealed={revealed} card={current} size="stage" result={result} />
         <span className={`stake-badge${stake ? ' is-set' : ''}${result ? ` result-${result}` : ''}`} aria-live="polite">

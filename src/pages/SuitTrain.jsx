@@ -6,11 +6,14 @@ import { useLang } from '../lib/i18n.jsx'
 import PlayingCard from '../components/PlayingCard.jsx'
 import TrainShell from '../components/TrainShell.jsx'
 import TapZones from '../components/TapZones.jsx'
-import { suitZones, REVEAL_MS, READY_LOCK_MS, edgeTone } from '../lib/eyesFree.jsx'
+import TrainHud from '../components/TrainHud.jsx'
+import { newSessionId, currentSession, CHANCE } from '../lib/stats.js'
+import { suitZones, REVEAL_MS, READY_LOCK_MS } from '../lib/eyesFree.jsx'
 
 export default function SuitTrain() {
   const { t } = useLang()
   const [state, setState] = useState(() => loadSuitState())
+  const [sessionId] = useState(newSessionId)
   // See CardTrain.jsx for why current/phase/lastGuess are bundled into one
   // state object instead of separate useState calls: a real leak was caught
   // on-device where the next round's card briefly rendered while the
@@ -62,27 +65,30 @@ export default function SuitTrain() {
     if (correct) hapticSuccess()
     else hapticError()
     setRound((r) => ({ ...r, phase: 'revealed', lastGuess: suitId }))
-    setState(recordSuitGuess(state, correct))
+    setState(recordSuitGuess(state, correct, sessionId))
     advanceRef.current = setTimeout(drawNext, REVEAL_MS)
   }
 
   if (!current) return <div className="train-shell" />
 
-  const accuracy = state.totalGuesses > 0 ? Math.round((state.totalCorrect / state.totalGuesses) * 100) : 0
-  const edge = state.totalGuesses >= 8 ? accuracy - 25 : null
   const revealed = phase === 'revealed'
   const result = revealed ? (lastGuess === current.suit ? 'right' : 'wrong') : null
 
-  const stats = [
-    { key: 'streak', label: t('hud.streak'), value: state.streak },
-    { key: 'acc', label: t('hud.accuracy'), value: `${accuracy}%` },
-  ]
-  if (edge !== null) stats.push({ key: 'edge', label: t('hud.edge'), value: `${edge > 0 ? '+' : ''}${edge}`, tone: edgeTone(edge) })
+  const hud = (
+    <TrainHud
+      session={currentSession(state, sessionId)}
+      total={state.totalGuesses}
+      chance={CHANCE.suits}
+      streak={state.streak}
+      best={state.bestStreak}
+      recent={state.recent}
+    />
+  )
 
   return (
     <TrainShell
       backTo="/cards"
-      stats={stats}
+      hud={hud}
       zones={
         <TapZones
           layout="quad"

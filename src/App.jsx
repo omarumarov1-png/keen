@@ -15,6 +15,7 @@ import TimeHome from './pages/TimeHome.jsx'
 import TimeTrain from './pages/TimeTrain.jsx'
 import ConfidenceHome from './pages/ConfidenceHome.jsx'
 import ConfidenceTrain from './pages/ConfidenceTrain.jsx'
+import HapticsTest from './pages/HapticsTest.jsx'
 import { useLang } from './lib/i18n.jsx'
 import './components/PlayingCard.css'
 import './App.css'
@@ -65,6 +66,7 @@ function App() {
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<PageWrap><Landing /></PageWrap>} />
+          <Route path="/haptics" element={<PageWrap><HapticsTest /></PageWrap>} />
           <Route path="/chess" element={<PageWrap><Home /></PageWrap>} />
           <Route path="/chess/train" element={<PageWrap train><Train /></PageWrap>} />
           <Route path="/cards" element={<PageWrap><CardHome /></PageWrap>} />

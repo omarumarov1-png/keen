@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { loadState, setExposureSeconds, setColorFilter } from '../lib/progress.js'
 import { useLang } from '../lib/i18n.jsx'
 import { ChessEmblem } from '../components/Emblems.jsx'
-import ModeHeader, { StatRow } from '../components/ModeHeader.jsx'
+import ModeHeader from '../components/ModeHeader.jsx'
+import RecordCard from '../components/RecordCard.jsx'
+import { CHESS_FALLBACK_CHANCE } from '../lib/stats.js'
 
 const MODES = [
   { id: 'w', icon: 'w', labelKey: 'chess.mode.white.label', descKey: 'chess.mode.white.desc' },
@@ -16,7 +18,7 @@ export default function Home() {
   const navigate = useNavigate()
   const { t } = useLang()
 
-  const accuracy = state.totalAttempts > 0 ? Math.round((state.totalCorrect / state.totalAttempts) * 100) : 0
+  const chance = state.chanceN > 0 ? state.chanceSum / state.chanceN : CHESS_FALLBACK_CHANCE
 
   function changeExposure(seconds) {
     setState(setExposureSeconds(state, seconds))
@@ -32,13 +34,15 @@ export default function Home() {
     <div className="home-page">
       <ModeHeader hue="chess" Emblem={ChessEmblem} title={t('chess.title')} tagline={t('chess.tagline')} />
 
-      <StatRow
-        items={[
-          { label: t('stat.rating'), value: state.rating },
-          { label: t('stat.bestStreak'), value: state.bestStreak },
-          { label: t('stat.accuracy'), value: `${accuracy}%` },
-          { label: t('stat.puzzlesSeen'), value: state.totalAttempts },
-        ]}
+      <RecordCard
+        hue="chess"
+        n={state.totalAttempts}
+        c={state.totalCorrect}
+        chance={chance}
+        bestStreak={state.bestStreak}
+        sessions={state.sessions}
+        extras={[{ k: 'rating', label: t('stat.rating'), value: state.rating }]}
+        note={t('record.chessNote', { n: Math.round(1 / chance) })}
       />
 
       <div className="choice-list hue-chess">

@@ -1,3 +1,5 @@
+import { normalizeStats, trackResult } from './stats.js'
+
 const KEY = 'chess-intuition-progress-v1'
 const DEFAULT_RATING = 1200
 const K_FACTOR = 24
@@ -11,6 +13,10 @@ function defaultState() {
     totalCorrect: 0,
     exposureSeconds: 8,
     colorFilter: 'both', // 'w' | 'b' | 'both'
+    recent: [], // last 20 results (see stats.js)
+    sessions: [], // last 30 sessions
+    chanceSum: 0, // sum of 1/legal-moves per attempt = expected right by guessing
+    chanceN: 0,
     history: {}, // puzzleId -> { seen, correct, lastSeenAt, dueAt, intervalMs }
   }
 }
@@ -19,7 +25,7 @@ export function loadState() {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return defaultState()
-    return { ...defaultState(), ...JSON.parse(raw) }
+    return normalizeStats({ ...defaultState(), ...JSON.parse(raw) })
   } catch {
     return defaultState()
   }
@@ -45,7 +51,7 @@ function nextInterval(prevIntervalMs, correct) {
   return Math.min(prevIntervalMs * 2.2, 30 * 24 * 60 * 60 * 1000) // cap 30 days
 }
 
-export function recordAttempt(state, puzzle, correct) {
+export function recordAttempt(state, puzzle, correct, sessionId = 0, chance = null) {
   const now = Date.now()
   const expected = expectedScore(state.rating, puzzle.rating)
   const rating = Math.round(state.rating + K_FACTOR * ((correct ? 1 : 0) - expected))
@@ -70,7 +76,10 @@ export function recordAttempt(state, puzzle, correct) {
     bestStreak: correct ? Math.max(state.bestStreak, state.streak + 1) : state.bestStreak,
     totalAttempts: state.totalAttempts + 1,
     totalCorrect: state.totalCorrect + (correct ? 1 : 0),
+    chanceSum: (state.chanceSum || 0) + (chance ?? 0),
+    chanceN: (state.chanceN || 0) + (chance === null ? 0 : 1),
     history,
+    ...trackResult(state, correct, sessionId, { chance }),
   }
   save(next)
   return next

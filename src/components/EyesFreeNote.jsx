@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useLang } from '../lib/i18n.jsx'
 
 // The "how eyes-free play works" legend shown on mode homes: tap anywhere in
@@ -40,6 +41,10 @@ export default function EyesFreeNote() {
           {t('ef.awake')}
         </li>
       </ul>
+      <Link to="/haptics" className="ef-test-link">
+        <span>{t('ef.testLink')}</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+      </Link>
     </section>
   )
 }

@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { loadNumberState, setDigitMode } from '../lib/numberProgress.js'
 import { useLang } from '../lib/i18n.jsx'
 import { NumbersEmblem } from '../components/Emblems.jsx'
-import ModeHeader, { StatRow } from '../components/ModeHeader.jsx'
+import ModeHeader from '../components/ModeHeader.jsx'
 import ZoneMap from '../components/ZoneMap.jsx'
 import EyesFreeNote from '../components/EyesFreeNote.jsx'
+import RecordCard from '../components/RecordCard.jsx'
+import { CHANCE } from '../lib/stats.js'
 
 const MODES = [
   { id: 'd1', icon: '1', labelKey: 'numbers.mode.d1.label', descKey: 'numbers.mode.d1.desc' },
@@ -19,8 +21,6 @@ export default function NumberHome() {
   const navigate = useNavigate()
   const { t } = useLang()
 
-  const accuracy = state.totalGuesses > 0 ? Math.round((state.totalCorrect / state.totalGuesses) * 100) : 0
-
   function startMode(digitMode) {
     const next = setDigitMode(state, digitMode)
     setState(next)
@@ -31,12 +31,7 @@ export default function NumberHome() {
     <div className="home-page">
       <ModeHeader hue="numbers" Emblem={NumbersEmblem} title={t('numbers.title')} tagline={t('numbers.tagline')} />
 
-      <StatRow
-        items={[
-          { label: t('stat.bestStreak'), value: state.bestStreak },
-          { label: t('stat.accuracy'), value: `${accuracy}%` },
-        ]}
-      />
+      <RecordCard hue="numbers" n={state.totalGuesses} c={state.totalCorrect} chance={CHANCE.numbers} bestStreak={state.bestStreak} sessions={state.sessions} />
 
       <div className="digit-grid hue-numbers">
         {MODES.map((m) => (

@@ -3,15 +3,16 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { generateRound } from '../lib/numbers.js'
 import { loadNumberState, recordNumberGuess } from '../lib/numberProgress.js'
 import { hapticSuccess, hapticError } from '../lib/haptics.js'
-import { useLang } from '../lib/i18n.jsx'
 import TrainShell from '../components/TrainShell.jsx'
 import TapZones from '../components/TapZones.jsx'
-import { REVEAL_MS, READY_LOCK_MS, edgeTone } from '../lib/eyesFree.jsx'
+import TrainHud from '../components/TrainHud.jsx'
+import { newSessionId, currentSession, CHANCE } from '../lib/stats.js'
+import { REVEAL_MS, READY_LOCK_MS } from '../lib/eyesFree.jsx'
 
 export default function NumberTrain() {
-  const { t } = useLang()
   const reduce = useReducedMotion()
   const [state, setState] = useState(() => loadNumberState())
+  const [sessionId] = useState(newSessionId)
   // round/phase/lastGuess in one state object (same reasoning as CardTrain):
   // the next round's target can never render next to the previous reveal.
   const [play, setPlay] = useState({ round: null, phase: 'guessing', lastGuess: null })
@@ -49,23 +50,26 @@ export default function NumberTrain() {
     if (correct) hapticSuccess()
     else hapticError()
     setPlay((p) => ({ ...p, phase: 'revealed', lastGuess: value }))
-    const next = recordNumberGuess(state, correct)
+    const next = recordNumberGuess(state, correct, sessionId)
     setState(next)
     advanceRef.current = setTimeout(() => drawNext(next.digitMode), REVEAL_MS)
   }
 
   if (!round) return <div className="train-shell" />
 
-  const accuracy = state.totalGuesses > 0 ? Math.round((state.totalCorrect / state.totalGuesses) * 100) : 0
-  const edge = state.totalGuesses >= 8 ? accuracy - 25 : null
   const revealed = phase === 'revealed'
   const result = revealed ? (lastGuess === round.target ? 'right' : 'wrong') : null
 
-  const stats = [
-    { key: 'streak', label: t('hud.streak'), value: state.streak },
-    { key: 'acc', label: t('hud.accuracy'), value: `${accuracy}%` },
-  ]
-  if (edge !== null) stats.push({ key: 'edge', label: t('hud.edge'), value: `${edge > 0 ? '+' : ''}${edge}`, tone: edgeTone(edge) })
+  const hud = (
+    <TrainHud
+      session={currentSession(state, sessionId)}
+      total={state.totalGuesses}
+      chance={CHANCE.numbers}
+      streak={state.streak}
+      best={state.bestStreak}
+      recent={state.recent}
+    />
+  )
 
   const zones = round.options.map((opt) => ({
     id: opt,
@@ -77,7 +81,7 @@ export default function NumberTrain() {
   return (
     <TrainShell
       backTo="/numbers"
-      stats={stats}
+      hud={hud}
       zones={
         <TapZones
           layout="quad"

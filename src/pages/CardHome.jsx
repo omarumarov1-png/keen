@@ -7,6 +7,8 @@ import { CardsEmblem, SuitsEmblem } from '../components/Emblems.jsx'
 import ModeHeader from '../components/ModeHeader.jsx'
 import ZoneMap from '../components/ZoneMap.jsx'
 import EyesFreeNote from '../components/EyesFreeNote.jsx'
+import RecordCard from '../components/RecordCard.jsx'
+import { CHANCE } from '../lib/stats.js'
 
 export default function CardHome() {
   const { t } = useLang()
@@ -43,6 +45,11 @@ export default function CardHome() {
             <span className="play-cta">{t('cta.play')}</span>
           </span>
         </Link>
+      </div>
+
+      <div className="record-list">
+        <RecordCard hue="cards" title={t('cards.bw.label')} n={bw.totalGuesses} c={bw.totalCorrect} chance={CHANCE.cards} bestStreak={bw.bestStreak} sessions={bw.sessions} />
+        <RecordCard hue="cards" title={t('cards.suits.label')} n={suits.totalGuesses} c={suits.totalCorrect} chance={CHANCE.suits} bestStreak={suits.bestStreak} sessions={suits.sessions} />
       </div>
 
       <EyesFreeNote />

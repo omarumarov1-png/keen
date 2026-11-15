@@ -817,10 +817,10 @@
 
 .train-top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  height: 52px;
+  min-height: 52px;
   flex: none;
   padding: 6px calc(env(safe-area-inset-right) + 14px) 0 calc(env(safe-area-inset-left) + 12px);
 }
@@ -931,6 +931,28 @@
   -webkit-touch-callout: none;
   box-shadow: inset 0 0 0 1px var(--line);
   transition: opacity 0.18s ease, transform 0.12s ease, filter 0.18s ease;
+}
+
+/* The real switch that makes iOS play its native haptic tick. Rendered (not
+   display:none -- a hidden switch doesn't tick) but invisible and out of the
+   way; the label around it forwards every tap to it. */
+.zone-switch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+  /* keep the native switch appearance: WebKit only plays the haptic for a
+     control that is still rendered as a switch */
+}
+
+.tap-zone:has(.zone-switch:focus-visible) {
+  outline: 2px solid var(--gold);
+  outline-offset: -4px;
 }
 
 .tap-zones:not(.is-locked) .tap-zone:active {
@@ -1356,4 +1378,557 @@
   .play-card,
   .choice-tile,
   .digit-tile { transition: none; }
+}
+
+/* ===================================================================
+   Training HUD -- glanceable, motion-free
+   =================================================================== */
+.hud {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-top: 2px;
+}
+
+.hud-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hud-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.hud-col small,
+.hud-col em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud-col small,
+.hud-extra small {
+  font: 800 9px/1 var(--sans);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.hud-col b {
+  font: 600 17px/1 var(--display);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hud-col em {
+  font: 600 10.5px/1 var(--sans);
+  font-style: normal;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hud-col.tone-good b { color: var(--right); }
+.hud-col.tone-bad b { color: var(--wrong); }
+
+.hud-trail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 12px;
+}
+
+.hud-extra {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.hud-extra b {
+  font: 600 13px/1 var(--display);
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ring gauge */
+.ring {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  --ring-arc: var(--hue, var(--gold));
+}
+
+.ring.tone-good { --ring-arc: var(--right); }
+.ring.tone-bad { --ring-arc: var(--wrong); }
+
+.ring svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.ring-track {
+  fill: none;
+  stroke: var(--surface-3);
+}
+
+.ring-arc {
+  fill: none;
+  stroke: var(--ring-arc);
+  stroke-linecap: round;
+}
+
+.ring-chance {
+  stroke: var(--gold-hi);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.ring-center {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.ring-center b {
+  font: 600 13px/1 var(--display);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.ring-center small {
+  font: 700 8px/1 var(--sans);
+  color: var(--text-3);
+  margin-left: 1px;
+}
+
+.hud .ring-center {
+  flex-direction: row;
+  align-items: baseline;
+}
+
+/* results trail */
+.trail {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.trail-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.trail-dot.is-hit { background: var(--right); }
+.trail-dot.is-miss { background: var(--wrong); }
+.trail-dot.is-empty { box-shadow: inset 0 0 0 1px var(--line-strong); }
+
+@media (max-width: 360px) {
+  .hud-row { gap: 10px; }
+  .hud-col b { font-size: 15px; }
+  .trail { gap: 3px; }
+  .trail-dot { width: 6px; height: 6px; }
+}
+
+/* the card shrinks a touch to make room for the HUD */
+.has-zones .flip-scene-stage {
+  --card-h: clamp(150px, 27dvh, 300px);
+}
+
+/* ===================================================================
+   "Your record" card (mode homes)
+   =================================================================== */
+.record-list {
+  display: grid;
+  gap: 14px;
+}
+
+.record-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 18px 16px;
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--hue) 13%, transparent), transparent 58%),
+    var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.record-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.record-eyebrow {
+  font: 800 10.5px/1 var(--sans);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.record-title {
+  font: 600 13px/1.2 var(--display);
+  color: var(--text-2);
+  text-align: right;
+}
+
+.record-empty {
+  margin: 0;
+  font: 500 14px/1.45 var(--sans);
+  color: var(--text-3);
+}
+
+.record-main {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+.record-main .ring-center b {
+  font: 600 26px/1 var(--display);
+  letter-spacing: -0.02em;
+}
+
+.record-main .ring-center b small {
+  font: 600 13px/1 var(--display);
+  color: var(--text-2);
+}
+
+.record-main .ring-center em {
+  margin-top: 5px;
+  font: 700 9.5px/1 var(--sans);
+  font-style: normal;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.record-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 12px;
+  margin: 0;
+}
+
+.record-grid div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 5px;
+  min-width: 0;
+}
+
+.record-grid dt {
+  font: 700 10px/1.2 var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.record-grid dd {
+  margin: 0;
+  font: 600 19px/1 var(--display);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.record-grid .tone-good dd { color: var(--right); }
+.record-grid .tone-bad dd { color: var(--wrong); }
+
+.record-verdict {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  font: 600 13px/1.35 var(--sans);
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.record-verdict i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--text-3);
+}
+
+.record-verdict.v-strong i { background: var(--right); box-shadow: 0 0 0 3px color-mix(in srgb, var(--right) 25%, transparent); }
+.record-verdict.v-leaning i { background: var(--gold); }
+.record-verdict.v-below i { background: var(--wrong); }
+
+.record-verdict-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.record-z {
+  margin-left: auto;
+  font: 600 11px/1 var(--display);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.record-note {
+  margin: -6px 0 0;
+  font: 500 12px/1.45 var(--sans);
+  color: var(--text-3);
+}
+
+.record-spark {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.record-spark-head,
+.record-spark-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font: 700 10.5px/1.2 var(--sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.record-spark-foot {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.record-spark-foot span:last-child { color: var(--hue); }
+
+.record-spark-empty {
+  margin: 0;
+  font: 500 12.5px/1.4 var(--sans);
+  color: var(--text-3);
+}
+
+.session-bars {
+  display: block;
+  width: 100%;
+  height: 64px;
+}
+
+.sb-bar { fill: var(--hue); }
+.sb-bar.is-below { fill: var(--text-3); }
+.sb-base { stroke: var(--line-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.sb-chance {
+  stroke: var(--gold-hi);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.85;
+}
+
+/* ===================================================================
+   Vibration test
+   =================================================================== */
+.haptics-entry {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  --hue: var(--gold);
+}
+
+.haptics-entry-icon,
+.ht-device-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 12%, var(--surface-2));
+}
+
+.haptics-entry-icon svg,
+.ht-device-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.haptics-entry-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.emblem-pulse {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.ef-test-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  font: 700 13.5px/1.2 var(--sans);
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 9%, var(--surface-2));
+  border: 1px solid color-mix(in srgb, var(--gold) 22%, transparent);
+}
+
+.ef-test-link svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ht-device {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 16px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.ht-device h2 {
+  font: 600 15px/1.3 var(--display);
+}
+
+.ht-device p {
+  margin: 6px 0 0;
+  font: 500 13.5px/1.5 var(--sans);
+  color: var(--text-2);
+}
+
+.ht-device.tone-ok .ht-device-icon { color: var(--right); background: color-mix(in srgb, var(--right) 12%, var(--surface-2)); }
+.ht-device.tone-warn { border-color: color-mix(in srgb, var(--wrong) 45%, transparent); }
+.ht-device.tone-warn .ht-device-icon { color: var(--wrong); background: color-mix(in srgb, var(--wrong) 12%, var(--surface-2)); }
+
+.ht-pads {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tap-zones.zones-panel {
+  height: 200px;
+  padding: 0;
+}
+
+.ht-legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  font: 600 12px/1.35 var(--sans);
+  color: var(--text-3);
+}
+
+.ht-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ht-legend b {
+  margin-left: auto;
+  font: 600 12px/1 var(--display);
+  color: var(--text-2);
+}
+
+.ht-tips {
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.ht-tips h2 {
+  font: 600 14px/1.3 var(--display);
+}
+
+.ht-tips ol {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  font: 500 13.5px/1.5 var(--sans);
+  color: var(--text-2);
+}
+
+.ht-sound {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.ht-sound > span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ht-sound b {
+  font: 700 15px/1.2 var(--sans);
+}
+
+.ht-sound small {
+  font: 500 12.5px/1.45 var(--sans);
+  color: var(--text-3);
+}
+
+.ht-sound input {
+  flex: none;
+  width: 46px;
+  height: 28px;
+  accent-color: var(--gold);
+  margin: 0;
 }

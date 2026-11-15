@@ -66,6 +66,19 @@ export default function Landing() {
       <p className="landing-foot">
         <span className="badge badge-dot" /> {t('landing.foot')}
       </p>
+
+      <Link to="/haptics" className="haptics-entry">
+        <span className="haptics-entry-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2.5" /><path d="M3 9v6M21 9v6" /></svg>
+        </span>
+        <span className="haptics-entry-body">
+          <span className="tile-label">{t('ht.entry.label')}</span>
+          <span className="tile-desc">{t('ht.entry.desc')}</span>
+        </span>
+        <span className="tile-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" /></svg>
+        </span>
+      </Link>
     </div>
   )
 }
