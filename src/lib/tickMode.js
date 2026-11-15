@@ -8,14 +8,15 @@ const KEY = 'keen-tick-on'
 export function getTickOn() {
   try {
     const v = localStorage.getItem(KEY)
-    return v === 'wrong' ? 'wrong' : 'right'
+    // default: tick on WRONG answers; an explicit 'right' is kept
+    return v === 'right' ? 'right' : 'wrong'
   } catch {
-    return 'right'
+    return 'wrong'
   }
 }
 
 export function setTickOn(v) {
-  try { localStorage.setItem(KEY, v === 'wrong' ? 'wrong' : 'right') } catch { /* private mode */ }
+  try { localStorage.setItem(KEY, v === 'right' ? 'right' : 'wrong') } catch { /* private mode */ }
 }
 
 // Should the zone with this id tick, given the round's correct answer?
