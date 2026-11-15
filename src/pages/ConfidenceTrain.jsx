@@ -110,6 +110,7 @@ export default function ConfidenceTrain() {
         zones={bwZones(t)}
         onPick={guess}
         locked={locked}
+        answer={!revealed && current ? current.color : null}
         feedback={revealed ? { picked: lastGuess, result, actual: current.color } : null}
       />
     )

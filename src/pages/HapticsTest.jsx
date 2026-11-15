@@ -1,12 +1,7 @@
 import { useState } from 'react'
-import { hapticSuccess, hapticError, hapticSupport, hapticProbe, PATTERNS } from '../lib/haptics.js'
+import { hapticSuccess, hapticError, hapticSupport, PATTERNS } from '../lib/haptics.js'
+import { getTickOn, setTickOn } from '../lib/tickMode.js'
 
-// Spacing probes: 3 ticks each, at three different gaps
-const PROBES = [
-  { id: 'p100', gap: 100 },
-  { id: 'p250', gap: 250 },
-  { id: 'p400', gap: 400 },
-]
 import { getSoundOn, setSoundOn, playCue } from '../lib/sound.js'
 import { useLang } from '../lib/i18n.jsx'
 import ModeHeader from '../components/ModeHeader.jsx'
@@ -35,6 +30,7 @@ export default function HapticsTest() {
   const support = hapticSupport()
   const [sound, setSound] = useState(() => getSoundOn())
   const [count, setCount] = useState({ right: 0, wrong: 0 })
+  const [tickOn, setTick] = useState(() => getTickOn())
 
   function test(id) {
     // TapZones has just toggled the zone's real switch (native tick #1)
@@ -62,7 +58,6 @@ export default function HapticsTest() {
     device = { tone: 'muted', title: t('ht.none.title'), body: t('ht.none.body') }
   }
 
-  const ios = PATTERNS.ios
   const and = PATTERNS.android
 
   return (
@@ -88,38 +83,48 @@ export default function HapticsTest() {
             { id: 'wrong', tone: 'no', glyph: <Cross />, label: t('ht.testWrong') },
           ]}
           onPick={test}
+          answer="right"
+          key={`pads-${tickOn}`}
         />
         <div className="ht-legend">
           <span>
             <span className="hl hl-right"><i /><i /></span>
             {support.kind === 'vibrate'
               ? t('ht.legend.android', { p: and.success.join('/') })
-              : t('ht.legend.iosOne')}
+              : (tickOn === 'right' ? t('ht.legend.iosOne') : t('ht.legend.none'))}
             <b data-testid="ht-count-right">{count.right ? `×${count.right}` : ''}</b>
           </span>
           <span>
             <span className="hl hl-wrong"><i /><i /></span>
             {support.kind === 'vibrate'
               ? t('ht.legend.android', { p: and.error.join('/') })
-              : t('ht.legend.ios', { n: ios.error.ticks, gap: ios.error.gapMs })}
+              : (tickOn === 'wrong' ? t('ht.legend.iosOne') : t('ht.legend.none'))}
             <b data-testid="ht-count-wrong">{count.wrong ? `×${count.wrong}` : ''}</b>
           </span>
         </div>
       </div>
 
-      <section className="ht-probe" data-testid="ht-probe">
-        <h2>{t('ht.probe.title')}</h2>
-        <p>{t('ht.probe.body')}</p>
-        <TapZones
-          layout="thirds"
-          size="panel"
-          zones={PROBES.map((p) => ({ id: p.id, tone: 'neutral', glyph: <b className="ht-probe-gap">{(p.gap / 1000).toFixed(2).replace(/0$/, '')}s</b>, label: t('ht.probe.pad', { gap: p.gap }) }))}
-          onPick={(id) => {
-            const p = PROBES.find((x) => x.id === id)
-            hapticProbe(3, p.gap)
-          }}
-        />
-      </section>
+      {support.kind === 'ios' && (
+        <section className="ht-tickon" data-testid="ht-tickon">
+          <h2>{t('ht.tickOn.title')}</h2>
+          <p>{t('ht.tickOn.body')}</p>
+          <div className="ht-seg" role="radiogroup" aria-label={t('ht.tickOn.title')}>
+            {['right', 'wrong'].map((v) => (
+              <button
+                key={v}
+                type="button"
+                role="radio"
+                aria-checked={tickOn === v}
+                className={tickOn === v ? 'on' : ''}
+                data-testid={`tickon-${v}`}
+                onClick={() => { setTickOn(v); setTick(v) }}
+              >
+                {t(`ht.tickOn.${v}`)}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="ht-tips">
         <h2>{t('ht.tips.title')}</h2>

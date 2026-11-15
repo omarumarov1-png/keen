@@ -1,6 +1,7 @@
 import { useCallback, useLayoutEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { noteNativeTick } from '../lib/haptics.js'
+import { getTickOn, zoneTicks } from '../lib/tickMode.js'
 
 // The hidden switch inside a zone. The answer is taken from the NATIVE
 // `change` event, which fires only after the toggle has fully happened (so
@@ -43,7 +44,12 @@ function ZoneSwitch({ label, disabled, onToggle }) {
 //
 // `feedback` = { picked, result: 'right' | 'wrong', actual } colours the
 // picked zone green/red and outlines the actual answer on a miss.
-export default function TapZones({ layout, zones, onPick, locked = false, feedback = null, size = 'tall', className = '' }) {
+// `answer` (optional) = the id of the zone that is correct this round. When
+// given, only zones that should tick (see tickMode.js) carry the switch: on an
+// iPhone, right answers tick and wrong ones stay silent (or the reverse,
+// per the player's setting). The others answer through a plain label click.
+export default function TapZones({ layout, zones, onPick, locked = false, feedback = null, size = 'tall', className = '', answer = null }) {
+  const tickOn = getTickOn()
   function stateFor(id) {
     if (!feedback) return 'idle'
     if (id === feedback.picked) return feedback.result
@@ -60,18 +66,25 @@ export default function TapZones({ layout, zones, onPick, locked = false, feedba
             key={z.id}
             className={`tap-zone zone-${z.tone || 'neutral'} state-${st}`}
             data-zone={z.id}
+            onClick={zoneTicks(z.id, answer, tickOn) ? undefined : () => {
+              // silent zone (no switch): answer from the label click itself
+              if (locked) return
+              flushSync(() => onPick(z.id))
+            }}
           >
-            <ZoneSwitch
-              label={z.aria || z.label}
-              disabled={locked}
-              onToggle={() => {
-                if (locked) return
-                noteNativeTick()
-                // render the lock synchronously: the switches are disabled
-                // before any further tap can reach them
-                flushSync(() => onPick(z.id))
-              }}
-            />
+            {zoneTicks(z.id, answer, tickOn) && (
+              <ZoneSwitch
+                label={z.aria || z.label}
+                disabled={locked}
+                onToggle={() => {
+                  if (locked) return
+                  noteNativeTick()
+                  // render the lock synchronously: the switches are disabled
+                  // before any further tap can reach them
+                  flushSync(() => onPick(z.id))
+                }}
+              />
+            )}
             <span className="zone-glyph" aria-hidden="true">{z.glyph}</span>
             {z.label && <span className="zone-label" aria-hidden="true">{z.label}</span>}
             {(st === 'right' || st === 'wrong') && (

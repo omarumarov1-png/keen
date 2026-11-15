@@ -85,6 +85,7 @@ export default function BusinessTrain() {
             ]}
             onPick={guess}
             locked={locked}
+            answer={current ? current.result : null}
           />
         }
       >

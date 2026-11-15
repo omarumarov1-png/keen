@@ -88,6 +88,7 @@ export default function NumberTrain() {
           zones={zones}
           onPick={guess}
           locked={locked}
+          answer={!revealed ? round.target : null}
           feedback={revealed ? { picked: lastGuess, result, actual: round.target } : null}
         />
       }

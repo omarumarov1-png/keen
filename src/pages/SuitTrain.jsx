@@ -95,6 +95,7 @@ export default function SuitTrain() {
           zones={suitZones(t)}
           onPick={guess}
           locked={locked}
+          answer={!revealed && current ? current.suit : null}
           feedback={revealed ? { picked: lastGuess, result, actual: current.suit } : null}
         />
       }

@@ -30,17 +30,11 @@ export const PATTERNS = {
     error: [280, 110, 280],
     tap: [14],
   },
-  // ticks = total ticks felt, including the native one from the tap itself.
-  // On a real iPhone 13 the earlier fast patterns (85 ms / 50 ms gaps) felt the
-  // same as a single tick -- iOS merges switch ticks that land too close
-  // together. So the two answers now differ by RHYTHM, spaced far enough
-  // apart to stay separate and still finish well inside the ~1 s window
-  // in which WebKit treats the timers as part of the tap:
-  //   right = ONE clean tick (the tap's own native tick)
-  //   wrong = FOUR slow ticks, "ta-ta-ta-ta", ~190 ms apart (~570 ms total)
+  // iPhone: one native tick per tap, or none (see tickMode.js). Shown on the
+  // Vibration test page; nothing is played from code on iOS.
   ios: {
     success: { ticks: 1, gapMs: 0 },
-    error: { ticks: 4, gapMs: 190 },
+    error: { ticks: 0, gapMs: 0 },
     tap: { ticks: 1, gapMs: 0 },
   },
 }
@@ -140,12 +134,11 @@ function play(kind, { gesture = true } = {}) {
     try { navigator.vibrate(PATTERNS.android[kind]) } catch { /* unsupported or blocked */ }
     return
   }
-  if (!isIOS() || !gesture) return
-  const { ticks, gapMs } = PATTERNS.ios[kind]
-  // tick #1: already played natively by the tap, or played now (inside the
-  // gesture) when the input didn't come through a switch
-  if (!native) iosTick()
-  for (let i = 1; i < ticks; i++) pending.push(setTimeout(iosTick, i * gapMs))
+  // iPhone: nothing more to play. Tested on a real iPhone 13: only the tick
+  // from the finger's own switch toggle is felt; programmatic/scheduled ticks
+  // never are. Right vs wrong is therefore told apart by WHICH zones carry a
+  // switch (tickMode.js / TapZones): one tick vs no tick.
+  void native
 }
 
 // `gesture: false` = not triggered by a tap (e.g. the chess clock ran out):
