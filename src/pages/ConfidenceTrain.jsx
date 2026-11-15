@@ -115,7 +115,7 @@ export default function ConfidenceTrain() {
           </p>
 
           <div className="card-stage">
-            <PlayingCard revealed={phase === 'revealed'} card={current} />
+            <PlayingCard revealed={phase === 'revealed'} card={current} result={phase === 'revealed' ? (correct ? 'right' : 'wrong') : null} />
           </div>
 
           <div className="guess-buttons">

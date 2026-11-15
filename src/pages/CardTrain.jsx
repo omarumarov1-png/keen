@@ -110,7 +110,11 @@ export default function CardTrain() {
       </AnimatePresence>
 
       <div className="card-stage">
-        <PlayingCard revealed={phase === 'revealed'} card={current} />
+        <PlayingCard
+          revealed={phase === 'revealed'}
+          card={current}
+          result={phase === 'revealed' ? (lastGuess === current.color ? 'right' : 'wrong') : null}
+        />
       </div>
 
       <div className="guess-buttons">

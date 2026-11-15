@@ -108,7 +108,12 @@ export default function SuitTrain() {
       </AnimatePresence>
 
       <div className="card-stage">
-        <PlayingCard revealed={phase === 'revealed'} card={current} colorMode="suit" />
+        <PlayingCard
+          revealed={phase === 'revealed'}
+          card={current}
+          colorMode="suit"
+          result={phase === 'revealed' ? (lastGuess === current.suit ? 'right' : 'wrong') : null}
+        />
       </div>
 
       <div className="suit-buttons">
