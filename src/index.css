@@ -37,9 +37,12 @@
   --zone-black-a: #1c1f29;
   --zone-black-b: #040507;
   --zone-black-ink: #f2eee5;
-  --zone-white-a: #f4f0e7;
-  --zone-white-b: #d3ccbc;
+  /* dark theme: the White zone is a muted warm stone, not bright ivory, so it
+     doesn't dazzle at night (still clearly lighter than the Black zone) */
+  --zone-white-a: #8d877a;
+  --zone-white-b: #5e594f;
   --zone-white-ink: #0b0c10;
+  --zone-white-disc: #d8d2c4;
 
   --r-lg: 24px;
   --r-md: 18px;
@@ -85,6 +88,7 @@
     --zone-black-b: #0d0e13;
     --zone-white-a: #ffffff;
     --zone-white-b: #ece7dc;
+    --zone-white-disc: #ffffff;
 
     color-scheme: light;
   }

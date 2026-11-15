@@ -993,7 +993,7 @@
 }
 
 .zone-black { --disc-fill: #000; }
-.zone-white { --disc-fill: #fff; }
+.zone-white { --disc-fill: var(--zone-white-disc, #fff); }
 .zone-black .zone-disc { filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.14)); }
 
 .zone-suit-black,
